@@ -1,12 +1,5 @@
 import React, { useMemo } from "react";
-import {
-  FlatList,
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,6 +9,7 @@ import { filterPlayersByCriteria, type PlayerSearchCriteria } from "@/lib/filter
 import { mergeSearchResultsWithProfile } from "@/lib/mergeSearchWithProfile";
 import { useAppTheme } from "@/contexts/ThemeContext";
 import { fontStack, layout } from "@/constants/theme";
+import { SearchPlayerRowCard } from "@/components/search/SearchPlayerRowCard";
 
 export default function SearchResultsScreen() {
   const { colors } = useAppTheme();
@@ -105,47 +99,10 @@ export default function SearchResultsScreen() {
           </View>
         }
         renderItem={({ item }) => (
-          <Pressable
+          <SearchPlayerRowCard
+            player={item}
             onPress={() => router.push(`/player/${item.id}`)}
-            style={({ pressed }) => [
-              styles.card,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                opacity: pressed ? 0.88 : 1,
-              },
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel={`Open profile for ${item.name}`}
-          >
-            <View style={styles.cardRow}>
-              <View
-                style={[
-                  styles.avatar,
-                  { backgroundColor: colors.surfaceMuted },
-                ]}
-              >
-                {item.avatarUri ? (
-                  <Image
-                    source={{ uri: item.avatarUri }}
-                    style={styles.avatarImg}
-                  />
-                ) : (
-                  <Ionicons name="person" size={22} color={colors.accent} />
-                )}
-              </View>
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={[styles.name, { color: colors.text }]}>{item.name}</Text>
-                <Text style={[styles.meta, { color: colors.textSecondary }]}>
-                  {item.position} · {item.dominantFoot} · {item.age} yrs
-                </Text>
-                <Text style={[styles.meta, { color: colors.textMuted }]}>
-                  {item.club} · {item.nation}
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-            </View>
-          </Pressable>
+          />
         )}
       />
     </View>
@@ -190,35 +147,6 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: layout.gutter,
     gap: 10,
-  },
-  card: {
-    borderRadius: layout.radiusMd,
-    borderWidth: 1,
-    padding: 14,
-  },
-  cardRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-  },
-  avatarImg: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: "800",
-    fontFamily: fontStack,
-  },
-  meta: {
-    fontSize: 12,
-    marginTop: 2,
-    fontFamily: fontStack,
   },
   empty: {
     alignItems: "center",

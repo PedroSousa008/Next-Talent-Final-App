@@ -33,6 +33,7 @@ import { nationFlagEmoji } from "@/constants/nationFlagEmoji";
 import { fontStack, layout } from "@/constants/theme";
 
 const CARD_LEFT_BADGE = require("@/assets/slbenfica.png");
+const LEAGUE_BADGE = require("@/assets/league.png");
 
 const SCREEN_BG = "#0B0E12";
 const CARD_GOLD_TOP = "rgba(201, 162, 39, 0.35)";
@@ -216,6 +217,13 @@ function PlayerFifaCard({ p }: { p: PlayerWithProfile }) {
           <View style={styles.metaTripLeft}>
             <Image
               source={CARD_LEFT_BADGE}
+              style={styles.metaSideImg}
+              resizeMode="contain"
+            />
+          </View>
+          <View style={styles.metaTripCenter}>
+            <Image
+              source={LEAGUE_BADGE}
               style={styles.metaLeagueImg}
               resizeMode="contain"
             />
@@ -596,24 +604,35 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     fontFamily: fontStack,
   },
-  /** Two columns: slbenfica.png | nationality flag */
+  /** Three columns: slbenfica.png | league.png | nationality flag */
   cardMetaRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     marginTop: 12,
     width: "100%",
-    paddingHorizontal: 8,
+    paddingHorizontal: 2,
   },
   metaTripLeft: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 36,
+  },
+  metaTripCenter: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
     minHeight: 36,
   },
   metaTripRight: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
     minHeight: 36,
+  },
+  metaSideImg: {
+    width: 40,
+    height: 32,
   },
   metaFlagWrap: {
     width: 32,
@@ -629,8 +648,8 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   metaLeagueImg: {
-    width: 48,
-    height: 34,
+    width: 44,
+    height: 30,
   },
   metaDot: {
     borderRadius: 14,

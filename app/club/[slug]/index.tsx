@@ -46,6 +46,10 @@ export default function ClubHubScreen() {
 
   const showSlbMark = /benfica/i.test(clubSlug.replace(/-/g, " "));
 
+  const openMatchLineup = (eventId: string) => {
+    router.push(`/club/${clubSlug}/lineup?eventId=${encodeURIComponent(eventId)}`);
+  };
+
   const onMessageTeam = () => {
     const n = hub.squad.filter((p) => !p.isYou).length + 1;
     Alert.alert(
@@ -196,7 +200,15 @@ export default function ClubHubScreen() {
         {tab === "calendar" ? (
           <View style={{ gap: 10 }}>
             {hub.calendar.map((item) => (
-              <Card key={item.id} padding={14}>
+              <Card
+                key={item.id}
+                padding={14}
+                onPress={
+                  item.kind === "match"
+                    ? () => openMatchLineup(item.id)
+                    : undefined
+                }
+              >
                 <View style={styles.calTop}>
                   <View
                     style={[
@@ -235,9 +247,18 @@ export default function ClubHubScreen() {
                     {item.dayLabel} · {item.time}
                   </Text>
                 </View>
-                <Text style={[styles.calTitle, { color: colors.text }]}>
-                  {item.title}
-                </Text>
+                <View style={styles.calTitleRow}>
+                  <Text style={[styles.calTitle, { color: colors.text }]}>
+                    {item.title}
+                  </Text>
+                  {item.kind === "match" ? (
+                    <Ionicons
+                      name="chevron-forward"
+                      size={20}
+                      color={colors.textMuted}
+                    />
+                  ) : null}
+                </View>
               </Card>
             ))}
           </View>
@@ -438,7 +459,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: fontStack,
   },
+  calTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
   calTitle: {
+    flex: 1,
     fontSize: 16,
     fontWeight: "800",
     fontFamily: fontStack,

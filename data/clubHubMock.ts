@@ -89,7 +89,7 @@ const GENERIC_DOCS: ClubDocumentItem[] = [
   { id: "gd1", title: "Club handbook", meta: "PDF" },
 ];
 
-function isBenficaSlug(slug: string): boolean {
+export function isBenficaSlug(slug: string): boolean {
   const n = slug.toLowerCase();
   return n === "benfica" || n === "sl-benfica" || n.includes("benfica");
 }
