@@ -2,6 +2,7 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -19,11 +20,19 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const system = useColorScheme();
   const [manual, setManual] = useState<ColorScheme | undefined>(undefined);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
 
   const resolvedScheme: ColorScheme = useMemo(() => {
     if (manual) return manual;
+    if (!hydrated) {
+      return "light";
+    }
     return system === "dark" ? "dark" : "light";
-  }, [manual, system]);
+  }, [manual, system, hydrated]);
 
   const colors = theme[resolvedScheme];
 

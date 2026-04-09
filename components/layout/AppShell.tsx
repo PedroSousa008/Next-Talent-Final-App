@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 import { useAppTheme } from "@/contexts/ThemeContext";
 import { MainHeader } from "./MainHeader";
 
@@ -15,6 +15,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, minHeight: "100%" as unknown as number },
+  root: {
+    flex: 1,
+    ...Platform.select({
+      web: { minHeight: "100vh" as unknown as number },
+      default: { minHeight: "100%" as unknown as number },
+    }),
+  },
   body: { flex: 1 },
 });

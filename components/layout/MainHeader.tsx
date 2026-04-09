@@ -6,7 +6,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { Link, usePathname } from "expo-router";
+import { usePathname, useRouter, type Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppTheme } from "@/contexts/ThemeContext";
@@ -27,6 +27,7 @@ const NAV = [
 export function MainHeader() {
   const { colors, resolvedScheme, toggleScheme } = useAppTheme();
   const pathname = usePathname();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { isMobile } = useBreakpoint();
 
@@ -93,44 +94,41 @@ export function MainHeader() {
           {NAV.map((item) => {
             const active = isActive(item.href);
             return (
-              <Link key={item.href} href={item.href} asChild>
-                <Pressable
-                  style={({ hovered, pressed }) => [
-                    styles.navItem,
-                    {
-                      backgroundColor: active
-                        ? colors.accentMuted
-                        : "transparent",
-                      borderColor: active ? colors.accent : "transparent",
-                      opacity: pressed ? 0.9 : 1,
-                    },
-                    hovered &&
-                      Platform.OS === "web" &&
-                      !active && {
-                        backgroundColor: colors.surfaceMuted,
+              <Pressable
+                key={item.href}
+                onPress={() => router.push(item.href as Href)}
+                accessibilityRole="link"
+                accessibilityState={{ selected: active }}
+                style={({ pressed }) => [
+                  styles.navItem,
+                  {
+                    backgroundColor: active
+                      ? colors.accentMuted
+                      : "transparent",
+                    borderColor: active ? colors.accent : "transparent",
+                    opacity: pressed ? 0.9 : 1,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name={item.icon}
+                  size={18}
+                  color={active ? colors.accent : colors.textSecondary}
+                />
+                {!isMobile && (
+                  <Text
+                    style={[
+                      styles.navLabel,
+                      {
+                        color: active ? colors.accent : colors.textSecondary,
                       },
-                  ]}
-                >
-                  <Ionicons
-                    name={item.icon}
-                    size={18}
-                    color={active ? colors.accent : colors.textSecondary}
-                  />
-                  {!isMobile && (
-                    <Text
-                      style={[
-                        styles.navLabel,
-                        {
-                          color: active ? colors.accent : colors.textSecondary,
-                        },
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {item.label}
-                    </Text>
-                  )}
-                </Pressable>
-              </Link>
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {item.label}
+                  </Text>
+                )}
+              </Pressable>
             );
           })}
         </View>
