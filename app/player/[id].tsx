@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import {
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,6 +11,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { CURRENT_USER_PLAYER_ID } from "@/constants/playerSearch";
+import { useProfile } from "@/contexts/ProfileContext";
 import {
   getPlayerWithProfile,
   playerLastName,
@@ -86,7 +89,11 @@ function PlayerFifaCard({ p }: { p: PlayerWithProfile }) {
           <Text style={styles.cardPos}>{p.position}</Text>
         </View>
         <View style={styles.cardPhoto}>
-          <Ionicons name="person" size={56} color="rgba(255,255,255,0.35)" />
+          {p.avatarUri ? (
+            <Image source={{ uri: p.avatarUri }} style={styles.cardPhotoImg} />
+          ) : (
+            <Ionicons name="person" size={56} color="rgba(255,255,255,0.35)" />
+          )}
         </View>
         <View style={styles.cardNameBlock}>
           <Text style={styles.cardSurname} numberOfLines={1}>
@@ -183,14 +190,18 @@ function PlayerDetailsPanel({ p }: { p: PlayerWithProfile }) {
 export default function PlayerProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { profile } = useProfile();
   const { isDesktop } = useBreakpoint();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [tab, setTab] = useState<TabId>("bio");
 
-  const player = useMemo(
-    () => (typeof id === "string" ? getPlayerWithProfile(id) : undefined),
-    [id]
-  );
+  const player = useMemo(() => {
+    if (typeof id !== "string") return undefined;
+    if (id === CURRENT_USER_PLAYER_ID) {
+      return getPlayerWithProfile(id, profile);
+    }
+    return getPlayerWithProfile(id);
+  }, [id, profile]);
 
   if (!player) {
     return (
@@ -420,6 +431,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: 12,
     minHeight: 100,
+  },
+  cardPhotoImg: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
   },
   cardNameBlock: {
     alignItems: "center",

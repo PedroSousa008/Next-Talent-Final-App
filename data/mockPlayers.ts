@@ -8,6 +8,8 @@ export type MockPlayer = {
   age: number;
   club: string;
   nation: string;
+  /** Set for the signed-in user when they have a profile photo */
+  avatarUri?: string | null;
 };
 
 /** Demo dataset — replace with API results later */

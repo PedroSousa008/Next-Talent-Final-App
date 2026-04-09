@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import {
   FlatList,
+  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -9,13 +10,16 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useProfile } from "@/contexts/ProfileContext";
 import { MOCK_PLAYERS } from "@/data/mockPlayers";
 import { filterPlayersByCriteria, type PlayerSearchCriteria } from "@/lib/filterPlayers";
+import { mergeSearchResultsWithProfile } from "@/lib/mergeSearchWithProfile";
 import { useAppTheme } from "@/contexts/ThemeContext";
 import { fontStack, layout } from "@/constants/theme";
 
 export default function SearchResultsScreen() {
   const { colors } = useAppTheme();
+  const { profile, ready: profileReady } = useProfile();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{
@@ -35,10 +39,11 @@ export default function SearchResultsScreen() {
     [params.playerName, params.position, params.foot, params.age]
   );
 
-  const results = useMemo(
-    () => filterPlayersByCriteria(MOCK_PLAYERS, criteria),
-    [criteria]
-  );
+  const results = useMemo(() => {
+    const mockHits = filterPlayersByCriteria(MOCK_PLAYERS, criteria);
+    if (!profileReady) return mockHits;
+    return mergeSearchResultsWithProfile(mockHits, profile, criteria);
+  }, [criteria, profile, profileReady]);
 
   const summaryParts = [
     criteria.playerName.trim() ? `“${criteria.playerName.trim()}”` : null,
@@ -120,7 +125,14 @@ export default function SearchResultsScreen() {
                   { backgroundColor: colors.surfaceMuted },
                 ]}
               >
-                <Ionicons name="person" size={22} color={colors.accent} />
+                {item.avatarUri ? (
+                  <Image
+                    source={{ uri: item.avatarUri }}
+                    style={styles.avatarImg}
+                  />
+                ) : (
+                  <Ionicons name="person" size={22} color={colors.accent} />
+                )}
               </View>
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text style={[styles.name, { color: colors.text }]}>{item.name}</Text>
@@ -191,6 +203,12 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
+  },
+  avatarImg: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
   },
   name: {
     fontSize: 16,

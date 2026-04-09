@@ -16,8 +16,14 @@ export type ProfileData = {
   position: string;
   club: string;
   nationality: string;
-  /** Local file URI from image picker */
+  /** Local file URI from image picker — persisted until cleared */
   avatarUri: string | null;
+  /** Aligns with Search position filter; "Any" = match any position filter */
+  searchPosition: string;
+  /** Dominant foot for Search; empty = match any foot filter */
+  searchFoot: string;
+  /** Age for Search; null = match any age filter */
+  searchAge: number | null;
 };
 
 const defaultProfile: ProfileData = {
@@ -27,6 +33,9 @@ const defaultProfile: ProfileData = {
   club: "North City FC",
   nationality: "Portugal",
   avatarUri: null,
+  searchPosition: "Any",
+  searchFoot: "",
+  searchAge: null,
 };
 
 type ProfileContextValue = {
@@ -50,7 +59,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         if (cancelled) return;
         if (raw) {
           const parsed = JSON.parse(raw) as Partial<ProfileData>;
-          setProfile((prev) => ({ ...prev, ...parsed }));
+          setProfile({ ...defaultProfile, ...parsed });
         }
       } catch {
         /* keep defaults */

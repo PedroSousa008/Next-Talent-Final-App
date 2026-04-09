@@ -1,3 +1,6 @@
+import type { ProfileData } from "@/contexts/ProfileContext";
+import { CURRENT_USER_PLAYER_ID } from "@/constants/playerSearch";
+import { profileToSearchPlayer } from "@/lib/mergeSearchWithProfile";
 import { MOCK_PLAYERS, type MockPlayer } from "@/data/mockPlayers";
 
 /** Extended profile shown on the player screen (FIFA-style bio + details). */
@@ -411,6 +414,37 @@ const EXTRAS: Record<string, Extra> = {
     redOther: 0,
     redCurrent: 1,
   },
+  [CURRENT_USER_PLAYER_ID]: {
+    rarityLabel: "Gold Rare",
+    rarityAccent: "#5BA3E8",
+    ovr: 81,
+    pace: 88,
+    shooting: 79,
+    passing: 76,
+    dribbling: 83,
+    defending: 45,
+    physical: 74,
+    playStylesCount: 3,
+    knownAs: null,
+    dateOfBirth: "15/06/2002",
+    heightLabel: "5'11\"",
+    accelerationType: "Explosive",
+    skillMoves: 4,
+    weakFootStars: 4,
+    boughtFor: "First Owner",
+    owners: 1,
+    tradeStatus: "Tradable",
+    matchesOther: 0,
+    matchesCurrent: 14,
+    goalsOther: 0,
+    goalsCurrent: 6,
+    assistsOther: 0,
+    assistsCurrent: 9,
+    yellowOther: 0,
+    yellowCurrent: 1,
+    redOther: 0,
+    redCurrent: 0,
+  },
 };
 
 function fallbackExtra(p: MockPlayer): Extra {
@@ -449,7 +483,16 @@ function fallbackExtra(p: MockPlayer): Extra {
   };
 }
 
-export function getPlayerWithProfile(id: string): PlayerWithProfile | undefined {
+export function getPlayerWithProfile(
+  id: string,
+  profile?: ProfileData
+): PlayerWithProfile | undefined {
+  if (id === CURRENT_USER_PLAYER_ID) {
+    if (!profile) return undefined;
+    const base = profileToSearchPlayer(profile);
+    const extra = EXTRAS[CURRENT_USER_PLAYER_ID] ?? fallbackExtra(base);
+    return { ...base, ...extra };
+  }
   const base = MOCK_PLAYERS.find((x) => x.id === id);
   if (!base) return undefined;
   const extra = EXTRAS[id] ?? fallbackExtra(base);

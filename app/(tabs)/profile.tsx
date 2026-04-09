@@ -85,23 +85,34 @@ export default function ProfileScreen() {
     }
   }, [updateProfile]);
 
+  const removePhoto = useCallback(() => {
+    updateProfile({ avatarUri: null });
+  }, [updateProfile]);
+
   const onAvatarPress = useCallback(() => {
     if (Platform.OS === "web") {
       void pickFromLibrary();
       return;
     }
-    Alert.alert("Profile photo", "Choose a source", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Take photo",
-        onPress: () => void takePhoto(),
-      },
-      {
-        text: "Choose from library",
-        onPress: () => void pickFromLibrary(),
-      },
-    ]);
-  }, [pickFromLibrary, takePhoto]);
+    const buttons: {
+      text: string;
+      style?: "cancel" | "destructive";
+      onPress?: () => void;
+    }[] = [];
+    if (profile.avatarUri) {
+      buttons.push({
+        text: "Remove photo",
+        style: "destructive",
+        onPress: removePhoto,
+      });
+    }
+    buttons.push(
+      { text: "Take photo", onPress: () => void takePhoto() },
+      { text: "Choose from library", onPress: () => void pickFromLibrary() },
+      { text: "Cancel", style: "cancel" }
+    );
+    Alert.alert("Profile photo", "Choose a source", buttons);
+  }, [pickFromLibrary, takePhoto, profile.avatarUri, removePhoto]);
 
   const subtitle = `@${profile.handle} · ${profile.position} · ${profile.nationality}`;
 
@@ -188,6 +199,20 @@ export default function ProfileScreen() {
             <Text style={[styles.handle, { color: colors.textSecondary }]}>
               {subtitle}
             </Text>
+            {profile.avatarUri ? (
+              <Pressable
+                onPress={removePhoto}
+                style={({ pressed }) => [
+                  styles.removePhotoBtn,
+                  { opacity: pressed ? 0.75 : 1 },
+                ]}
+                accessibilityLabel="Remove profile photo"
+              >
+                <Text style={[styles.removePhotoText, { color: colors.danger }]}>
+                  Remove photo
+                </Text>
+              </Pressable>
+            ) : null}
             <View style={styles.starsRow}>
               {Array.from({ length: 5 }).map((_, i) => (
                 <Ionicons
@@ -470,6 +495,17 @@ const styles = StyleSheet.create({
   handle: {
     marginTop: 6,
     fontSize: 14,
+    fontFamily: fontStack,
+    textAlign: "center",
+  },
+  removePhotoBtn: {
+    marginTop: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  removePhotoText: {
+    fontSize: 13,
+    fontWeight: "700",
     fontFamily: fontStack,
     textAlign: "center",
   },
