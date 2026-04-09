@@ -1,6 +1,5 @@
 import React, { useMemo } from "react";
 import {
-  ImageBackground,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,6 +9,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SearchPlayerRowCard } from "@/components/search/SearchPlayerRowCard";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -18,8 +18,6 @@ import { getBenficaCoachLineup } from "@/data/startingLineup";
 import { getClubHubForSlug, isBenficaSlug } from "@/data/clubHubMock";
 import { CURRENT_USER_PLAYER_ID } from "@/constants/playerSearch";
 import { fontStack, layout } from "@/constants/theme";
-
-const PITCH_BG = require("@/assets/pitch-bg.png");
 
 const CARD_W = 132;
 
@@ -30,7 +28,7 @@ export default function ClubMatchLineupScreen() {
   }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { colors } = useAppTheme();
+  const { colors, resolvedScheme } = useAppTheme();
   const { profile } = useProfile();
   const { width: winW } = useWindowDimensions();
 
@@ -64,6 +62,16 @@ export default function ClubMatchLineupScreen() {
 
   const pitchW = Math.min(winW - layout.gutter * 2, 440);
   const pitchH = pitchW * 1.42;
+
+  const pitchGradient =
+    resolvedScheme === "dark"
+      ? (["#1a2e24", "#0f1f17"] as const)
+      : (["#d4edda", "#a8d5ba"] as const);
+
+  const pitchBorder =
+    resolvedScheme === "dark"
+      ? "rgba(255,255,255,0.12)"
+      : "rgba(0,0,0,0.08)";
 
   const openPlayer = (playerId: string) => {
     if (
@@ -119,55 +127,52 @@ export default function ClubMatchLineupScreen() {
             Demo line-up is available for Benfica.
           </Text>
         ) : (
-          <>
-            <Text style={[styles.intro, { color: colors.textMuted }]}>
-              Same player cards as Search — tap you or a demo player with a full
-              profile to open their page.
-            </Text>
-            <View style={[styles.pitchFrame, { width: pitchW, height: pitchH }]}>
-              <ImageBackground
-                source={PITCH_BG}
-                style={styles.pitchBg}
-                imageStyle={styles.pitchBgImage}
-                resizeMode="cover"
+          <View style={[styles.pitchFrame, { width: pitchW, height: pitchH, borderColor: pitchBorder }]}>
+            <LinearGradient
+              colors={pitchGradient}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={styles.pitchFill}
+            />
+            {placements.map((row) => (
+              <View
+                key={row.player.id + row.slotLabel}
+                style={[
+                  styles.slotWrap,
+                  {
+                    left: `${row.leftPct}%`,
+                    top: `${row.topPct}%`,
+                    width: CARD_W,
+                    marginLeft: -CARD_W / 2,
+                  },
+                ]}
               >
-                <View style={styles.pitchTint} />
-                {placements.map((row) => (
-                  <View
-                    key={row.player.id + row.slotLabel}
-                    style={[
-                      styles.slotWrap,
-                      {
-                        left: `${row.leftPct}%`,
-                        top: `${row.topPct}%`,
-                        width: CARD_W,
-                        marginLeft: -CARD_W / 2,
-                      },
-                    ]}
-                  >
-                    <SearchPlayerRowCard
-                      compact
-                      player={row.player}
-                      onPress={
-                        row.player.id === CURRENT_USER_PLAYER_ID ||
-                        /^\d+$/.test(row.player.id)
-                          ? () => openPlayer(row.player.id)
-                          : undefined
-                      }
-                    />
-                    <View
-                      style={[
-                        styles.posBadge,
-                        { backgroundColor: "rgba(15, 20, 28, 0.92)" },
-                      ]}
-                    >
-                      <Text style={styles.posBadgeText}>{row.slotLabel}</Text>
-                    </View>
-                  </View>
-                ))}
-              </ImageBackground>
-            </View>
-          </>
+                <SearchPlayerRowCard
+                  compact
+                  player={row.player}
+                  onPress={
+                    row.player.id === CURRENT_USER_PLAYER_ID ||
+                    /^\d+$/.test(row.player.id)
+                      ? () => openPlayer(row.player.id)
+                      : undefined
+                  }
+                />
+                <View
+                  style={[
+                    styles.posBadge,
+                    {
+                      backgroundColor: colors.surface,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.posBadgeText, { color: colors.text }]}>
+                    {row.slotLabel}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
         )}
       </ScrollView>
     </View>
@@ -206,14 +211,6 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     alignItems: "center",
   },
-  intro: {
-    fontSize: 13,
-    lineHeight: 18,
-    fontFamily: fontStack,
-    marginBottom: 14,
-    textAlign: "center",
-    maxWidth: 400,
-  },
   fallback: {
     fontSize: 14,
     lineHeight: 20,
@@ -225,20 +222,12 @@ const styles = StyleSheet.create({
   pitchFrame: {
     borderRadius: layout.radiusLg,
     overflow: "hidden",
-    borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.2)",
+    borderWidth: 1,
+    position: "relative",
   },
-  pitchBg: {
-    flex: 1,
-    width: "100%",
-    height: "100%",
-  },
-  pitchBgImage: {
-    borderRadius: layout.radiusLg,
-  },
-  pitchTint: {
+  pitchFill: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 24, 12, 0.22)",
+    borderRadius: layout.radiusLg,
   },
   slotWrap: {
     position: "absolute",
@@ -251,10 +240,8 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
   },
   posBadgeText: {
-    color: "rgba(255,255,255,0.95)",
     fontSize: 10,
     fontWeight: "900",
     fontFamily: fontStack,
