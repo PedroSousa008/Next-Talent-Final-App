@@ -23,7 +23,6 @@ import {
   type SeasonDetails,
 } from "@/data/playerProfileExtras";
 import { useBreakpoint } from "@/hooks/useBreakpoint";
-import { clubLogoSource } from "@/lib/clubLogo";
 import {
   formatHeightMeters,
   formatWeightKg,
@@ -34,6 +33,8 @@ import { nationFlagEmoji } from "@/constants/nationFlagEmoji";
 import { fontStack, layout } from "@/constants/theme";
 
 const LEAGUE_BADGE = require("@/assets/league.png");
+/** SLB club mark — center of the FIFA card */
+const SLB_LOGO = require("@/assets/slb.logo.png");
 
 const SCREEN_BG = "#0B0E12";
 const CARD_GOLD_TOP = "rgba(201, 162, 39, 0.35)";
@@ -124,10 +125,16 @@ function strengthCellColors(level: AttributeLevel): {
   }
 }
 
-function formatSeasonValue(v: number | null): string {
+function formatSeasonValue(
+  v: number | null,
+  key?: keyof SeasonDetails
+): string {
   if (v === null) return "—";
+  if (key === "goalsPerGame" || key === "assistsPerGame") {
+    return v.toFixed(2);
+  }
   if (Number.isInteger(v)) return v.toLocaleString("en-US");
-  return String(v);
+  return Number.isFinite(v) ? String(v) : "—";
 }
 
 type TabId = "bio" | "details";
@@ -183,7 +190,6 @@ function ToggleMetricRow({
 function PlayerFifaCard({ p }: { p: PlayerWithProfile }) {
   const last = playerLastName(p.name);
   const flag = nationFlagEmoji(p.nation);
-  const clubLogo = clubLogoSource(p.club);
   return (
     <View style={styles.cardOuter}>
       <LinearGradient
@@ -220,17 +226,11 @@ function PlayerFifaCard({ p }: { p: PlayerWithProfile }) {
             />
           </View>
           <View style={styles.metaTripCenter}>
-            {clubLogo != null ? (
-              <Image
-                source={clubLogo}
-                style={styles.metaTripClubImg}
-                resizeMode="contain"
-              />
-            ) : (
-              <Text style={styles.metaClubFallback} numberOfLines={1}>
-                {p.club}
-              </Text>
-            )}
+            <Image
+              source={SLB_LOGO}
+              style={styles.metaTripClubImg}
+              resizeMode="contain"
+            />
           </View>
           <View style={styles.metaTripRight}>
             <View style={styles.metaFlagWrap}>
@@ -338,7 +338,7 @@ function PlayerDetailsPanel({ p }: { p: PlayerWithProfile }) {
           <View key={key} style={styles.seasonRow}>
             <Text style={styles.seasonLabel}>{label}</Text>
             <Text style={styles.seasonValue}>
-              {formatSeasonValue(sd[key])}
+              {formatSeasonValue(sd[key], key)}
             </Text>
           </View>
         ))}
@@ -615,7 +615,7 @@ const styles = StyleSheet.create({
     fontFamily: fontStack,
     color: "rgba(255,255,255,0.88)",
   },
-  /** Three equal columns: league | club crest (Benfica.png when matched) | nationality flag */
+  /** Three equal columns: league | SLB logo (slb.logo.png) | nationality flag */
   cardMetaRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -671,14 +671,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 6,
     minHeight: 28,
-  },
-  metaClubFallback: {
-    color: "rgba(255,255,255,0.75)",
-    fontSize: 9,
-    fontWeight: "700",
-    fontFamily: fontStack,
-    textAlign: "center",
-    paddingHorizontal: 4,
   },
   panel: {
     flex: 1,

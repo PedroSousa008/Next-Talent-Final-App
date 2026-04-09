@@ -110,10 +110,6 @@ function seasonDetailsFromStats(s: SeasonLegacy): SeasonDetails {
   const assists = s.assistsOther + s.assistsCurrent;
   const yellows = s.yellowOther + s.yellowCurrent;
   const reds = s.redOther + s.redCurrent;
-  const goalsPerGame =
-    games > 0 ? Math.round((goals / games) * 100) / 100 : null;
-  const assistsPerGame =
-    games > 0 ? Math.round((assists / games) * 100) / 100 : null;
   const starts =
     s.starts ??
     (games > 0 ? Math.min(games, Math.max(1, Math.round(games * 0.85))) : null);
@@ -124,12 +120,21 @@ function seasonDetailsFromStats(s: SeasonLegacy): SeasonDetails {
         ? Math.round(games * 78)
         : null;
 
+  const gamesOut = games > 0 ? games : null;
+  const goalsOut = games > 0 || goals > 0 ? goals : null;
+  const assistsOut = games > 0 || assists > 0 ? assists : null;
+  /** Always from the same games + totals so the table stays internally consistent */
+  const goalsPerGame =
+    games > 0 ? Math.round((goals / games) * 100) / 100 : null;
+  const assistsPerGame =
+    games > 0 ? Math.round((assists / games) * 100) / 100 : null;
+
   return {
-    games: games > 0 ? games : null,
+    games: gamesOut,
     starts,
-    goals: games > 0 || goals > 0 ? goals : null,
+    goals: goalsOut,
     goalsPerGame,
-    assists: games > 0 || assists > 0 ? assists : null,
+    assists: assistsOut,
     assistsPerGame,
     minutes,
     yellows: games > 0 || yellows > 0 ? yellows : null,
@@ -180,7 +185,7 @@ const EXTRAS: Record<string, Extra> = {
       redCurrent: 0,
       freeKickGoals: 1,
       penaltyGoals: 2,
-      rightFootedGoals: 5,
+      rightFootedGoals: 7,
       leftFootedGoals: 1,
       headerGoals: 1,
     }
@@ -444,18 +449,19 @@ const EXTRAS: Record<string, Extra> = {
       matchesOther: 0,
       matchesCurrent: 14,
       goalsOther: 0,
-      goalsCurrent: 6,
+      goalsCurrent: 12,
       assistsOther: 0,
-      assistsCurrent: 9,
+      assistsCurrent: 7,
       yellowOther: 0,
       yellowCurrent: 1,
       redOther: 0,
       redCurrent: 0,
-      minutesPlayed: 14 * 78,
+      starts: 13,
+      minutesPlayed: Math.round(13 * 88 + 1 * 24),
       freeKickGoals: 0,
-      penaltyGoals: 1,
-      rightFootedGoals: 4,
-      leftFootedGoals: 1,
+      penaltyGoals: 2,
+      rightFootedGoals: 9,
+      leftFootedGoals: 2,
       headerGoals: 1,
     }
   ),
