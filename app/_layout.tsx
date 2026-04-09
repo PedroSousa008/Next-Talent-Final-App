@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Platform, View } from "react-native";
-import { Slot } from "expo-router";
+import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -40,7 +40,7 @@ function RootNavigation() {
       ]}
     >
       <ThemedStatusBar />
-      <Slot />
+      <Stack screenOptions={{ headerShown: false }} />
     </View>
   );
 }

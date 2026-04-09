@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import { HorizontalPickModal } from "@/components/search/HorizontalPickModal";
 import { PlayerNameModal } from "@/components/search/PlayerNameModal";
 import {
@@ -84,6 +85,7 @@ function truncate(s: string, max: number) {
 }
 
 export default function SearchScreen() {
+  const router = useRouter();
   const { colors, resolvedScheme } = useAppTheme();
   const { isDesktop } = useBreakpoint();
   const { width: screenW } = useWindowDimensions();
@@ -176,19 +178,32 @@ export default function SearchScreen() {
   const footOptions = useMemo(() => [...DOMINANT_FOOT_OPTIONS], []);
   const ageOptions = useMemo(() => [...AGE_OPTIONS], []);
 
+  const onSearchPress = useCallback(() => {
+    router.push({
+      pathname: "/search-results",
+      params: {
+        playerName: playerName.trim(),
+        position: POSITION_OPTIONS[positionIndex],
+        foot: DOMINANT_FOOT_OPTIONS[footIndex],
+        age: AGE_OPTIONS[ageIndex],
+      },
+    });
+  }, [router, playerName, positionIndex, footIndex, ageIndex]);
+
   return (
     <View style={[styles.root, { backgroundColor: colors.bg }]}>
-      <ImageBackground
-        source={{ uri: STADIUM_BG }}
-        style={styles.bg}
-        resizeMode="cover"
-      >
-        <LinearGradient colors={overlayColors} style={styles.overlay}>
-          <ScrollView
-            style={styles.scroll}
-            contentContainerStyle={styles.scrollInner}
-            showsVerticalScrollIndicator={false}
-          >
+      <View style={styles.main}>
+        <ImageBackground
+          source={{ uri: STADIUM_BG }}
+          style={styles.bg}
+          resizeMode="cover"
+        >
+          <LinearGradient colors={overlayColors} style={styles.overlay}>
+            <ScrollView
+              style={styles.scroll}
+              contentContainerStyle={styles.scrollInner}
+              showsVerticalScrollIndicator={false}
+            >
             <View style={styles.head}>
               <Text style={[styles.pageTitle, { color: "#fff" }]}>Search</Text>
               <Text style={[styles.pageSub, { color: "rgba(255,255,255,0.72)" }]}>
@@ -244,10 +259,34 @@ export default function SearchScreen() {
               })}
             </View>
 
-            <View style={{ height: 100 }} />
-          </ScrollView>
-        </LinearGradient>
-      </ImageBackground>
+              <View style={{ height: 24 }} />
+            </ScrollView>
+          </LinearGradient>
+        </ImageBackground>
+      </View>
+
+      <View
+        style={[
+          styles.footer,
+          {
+            backgroundColor: colors.surface,
+            borderTopColor: colors.border,
+          },
+        ]}
+      >
+        <Pressable
+          onPress={onSearchPress}
+          style={({ pressed }) => [
+            styles.searchBtn,
+            { backgroundColor: colors.accent, opacity: pressed ? 0.9 : 1 },
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel="Search players with current filters"
+        >
+          <Ionicons name="search" size={20} color="#fff" />
+          <Text style={styles.searchBtnText}>Search</Text>
+        </Pressable>
+      </View>
 
       <PlayerNameModal
         visible={modal === "player-name"}
@@ -288,6 +327,7 @@ export default function SearchScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  main: { flex: 1, minHeight: 0 },
   bg: { flex: 1 },
   overlay: { flex: 1 },
   scroll: { flex: 1 },
@@ -341,5 +381,26 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontFamily: fontStack,
     textAlign: "center",
+  },
+  footer: {
+    paddingHorizontal: layout.gutter,
+    paddingTop: 12,
+    paddingBottom: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  searchBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    minHeight: 48,
+    borderRadius: layout.radiusMd,
+    paddingHorizontal: 20,
+  },
+  searchBtnText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "800",
+    fontFamily: fontStack,
   },
 });
