@@ -37,17 +37,31 @@ export type ProfileData = {
 const defaultProfile: ProfileData = {
   displayName: "Pedro Sousa",
   handle: "pedrosousa",
-  position: "Winger",
-  club: "North City FC",
+  position: "CAM",
+  club: "Benfica",
   nationality: "Portugal",
   avatarUri: null,
-  searchPosition: "Any",
-  searchFoot: "",
+  searchPosition: "CAM",
+  searchFoot: "Right Foot",
   heightMeters: 1.8,
   weightKg: 73,
   dateOfBirth: "13/04/2003",
   shirtNumber: 8,
 };
+
+/** One-time style upgrades for Pedro Sousa saved before Benfica / CAM defaults */
+function migratePedroSousaProfile(p: ProfileData): ProfileData {
+  if (p.displayName.trim().toLowerCase() !== "pedro sousa") return p;
+  let next = { ...p };
+  if (next.club === "North City FC") next = { ...next, club: "Benfica" };
+  if (next.searchPosition === "Any") {
+    next = { ...next, searchPosition: "CAM", position: "CAM" };
+  }
+  if (!next.searchFoot.trim()) {
+    next = { ...next, searchFoot: "Right Foot" };
+  }
+  return next;
+}
 
 function mergeStoredProfile(raw: unknown): ProfileData {
   const merged = { ...defaultProfile };
@@ -102,7 +116,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         if (cancelled) return;
         if (rawStr) {
           const parsed = JSON.parse(rawStr) as unknown;
-          const merged = mergeStoredProfile(parsed);
+          const merged = migratePedroSousaProfile(mergeStoredProfile(parsed));
           setProfile(merged);
           await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
         }

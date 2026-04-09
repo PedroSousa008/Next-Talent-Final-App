@@ -114,7 +114,12 @@ export default function ProfileScreen() {
     Alert.alert("Profile photo", "Choose a source", buttons);
   }, [pickFromLibrary, takePhoto, profile.avatarUri, removePhoto]);
 
-  const subtitle = `@${profile.handle} · ${profile.position} · ${profile.nationality}`;
+  const subtitleParts = [`@${profile.handle}`];
+  if (profile.searchPosition !== "Any") {
+    subtitleParts.push(profile.searchPosition);
+  }
+  subtitleParts.push(profile.nationality);
+  const subtitle = subtitleParts.join(" · ");
 
   return (
     <>

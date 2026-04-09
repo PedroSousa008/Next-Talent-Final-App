@@ -23,6 +23,7 @@ import {
   type SeasonDetails,
 } from "@/data/playerProfileExtras";
 import { useBreakpoint } from "@/hooks/useBreakpoint";
+import { clubLogoSource } from "@/lib/clubLogo";
 import {
   formatHeightMeters,
   formatWeightKg,
@@ -181,6 +182,7 @@ function ToggleMetricRow({
 function PlayerFifaCard({ p }: { p: PlayerWithProfile }) {
   const last = playerLastName(p.name);
   const flag = nationFlagEmoji(p.nation);
+  const clubLogo = clubLogoSource(p.club);
   return (
     <View style={styles.cardOuter}>
       <LinearGradient
@@ -221,10 +223,18 @@ function PlayerFifaCard({ p }: { p: PlayerWithProfile }) {
               resizeMode="contain"
             />
           </View>
-          <View style={[styles.metaDot, styles.metaClubWrap]}>
-            <Text style={styles.metaClub} numberOfLines={1}>
-              {p.club}
-            </Text>
+          <View style={styles.metaClubSlot}>
+            {clubLogo != null ? (
+              <Image
+                source={clubLogo}
+                style={styles.metaClubLogo}
+                resizeMode="contain"
+              />
+            ) : (
+              <Text style={styles.metaClub} numberOfLines={1}>
+                {p.club}
+              </Text>
+            )}
           </View>
         </View>
       </LinearGradient>
@@ -641,9 +651,18 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     minHeight: 28,
   },
-  metaClubWrap: {
+  metaClubSlot: {
     flex: 1,
     minWidth: 0,
+    minHeight: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 2,
+  },
+  metaClubLogo: {
+    width: "100%",
+    maxWidth: 88,
+    height: 28,
   },
   metaClub: {
     color: "rgba(255,255,255,0.75)",
