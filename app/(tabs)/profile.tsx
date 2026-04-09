@@ -1,15 +1,21 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
 import {
+  Alert,
+  Image,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { EditProfileModal } from "@/components/profile/EditProfileModal";
 import { Card } from "@/components/ui/Card";
 import { SectionTitle } from "@/components/ui/SectionTitle";
+import { useProfile } from "@/contexts/ProfileContext";
 import { useAppTheme } from "@/contexts/ThemeContext";
 import { fontStack, layout } from "@/constants/theme";
 import { useBreakpoint } from "@/hooks/useBreakpoint";
@@ -31,128 +37,255 @@ const BARS = [
 
 export default function ProfileScreen() {
   const { colors, resolvedScheme } = useAppTheme();
+  const { profile, updateProfile, replaceProfile } = useProfile();
   const { isDesktop } = useBreakpoint();
+  const [editOpen, setEditOpen] = useState(false);
 
   const cover = resolvedScheme === "dark"
     ? (["#1E3A8A", "#0B0F14"] as const)
     : (["#DBEAFE", "#F4F5F7"] as const);
 
+  const pickFromLibrary = useCallback(async () => {
+    const { status } =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission needed",
+        "Allow photo library access to set your profile picture."
+      );
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.85,
+    });
+    if (!result.canceled && result.assets[0]?.uri) {
+      updateProfile({ avatarUri: result.assets[0].uri });
+    }
+  }, [updateProfile]);
+
+  const takePhoto = useCallback(async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission needed",
+        "Allow camera access to take a profile photo."
+      );
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.85,
+    });
+    if (!result.canceled && result.assets[0]?.uri) {
+      updateProfile({ avatarUri: result.assets[0].uri });
+    }
+  }, [updateProfile]);
+
+  const onAvatarPress = useCallback(() => {
+    if (Platform.OS === "web") {
+      void pickFromLibrary();
+      return;
+    }
+    Alert.alert("Profile photo", "Choose a source", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Take photo",
+        onPress: () => void takePhoto(),
+      },
+      {
+        text: "Choose from library",
+        onPress: () => void pickFromLibrary(),
+      },
+    ]);
+  }, [pickFromLibrary, takePhoto]);
+
+  const subtitle = `@${profile.handle} · ${profile.position} · ${profile.nationality}`;
+
   return (
-    <ScrollView
-      style={{ flex: 1 }}
-      contentContainerStyle={styles.scroll}
-      showsVerticalScrollIndicator={false}
-    >
-      <LinearGradient colors={cover} style={styles.cover}>
-        <View style={styles.coverInner}>
-          <View style={styles.avatarWrap}>
-            <View
-              style={[styles.avatar, { backgroundColor: colors.surface, borderColor: colors.border }]}
+    <>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
+        <LinearGradient colors={cover} style={styles.cover}>
+          <View style={styles.coverTopBar}>
+            <View style={{ flex: 1 }} />
+            <Pressable
+              onPress={() => setEditOpen(true)}
+              style={({ pressed }) => [
+                styles.editPill,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  opacity: pressed ? 0.9 : 1,
+                },
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Edit profile"
             >
-              <Ionicons name="person" size={44} color={colors.textSecondary} />
-            </View>
-            <View style={[styles.levelBadge, { backgroundColor: colors.accent }]}>
-              <Text style={styles.levelBadgeText}>Lv. 4</Text>
-            </View>
-          </View>
-          <Text style={[styles.name, { color: colors.text }]}>Pedro Castro</Text>
-          <Text style={[styles.handle, { color: colors.textSecondary }]}>
-            @pedrocastro · Winger · Portugal
-          </Text>
-          <View style={styles.starsRow}>
-            {Array.from({ length: 5 }).map((_, i) => (
               <Ionicons
-                key={i}
-                name={i < LEVEL_STARS ? "star" : "star-outline"}
+                name="create-outline"
                 size={18}
-                color={colors.star}
+                color={colors.accent}
               />
-            ))}
-            <Text style={[styles.levelLabel, { color: colors.textMuted }]}>
-              Player level
-            </Text>
-          </View>
-          <View style={styles.followRow}>
-            <View style={styles.followBlock}>
-              <Text style={[styles.followNum, { color: colors.text }]}>18.4k</Text>
-              <Text style={[styles.followLbl, { color: colors.textMuted }]}>
-                Followers
+              <Text style={[styles.editLabel, { color: colors.text }]}>
+                Edit
               </Text>
-            </View>
-            <View style={[styles.vsep, { backgroundColor: colors.border }]} />
-            <View style={styles.followBlock}>
-              <Text style={[styles.followNum, { color: colors.text }]}>412</Text>
-              <Text style={[styles.followLbl, { color: colors.textMuted }]}>
-                Following
-              </Text>
-            </View>
+            </Pressable>
           </View>
-        </View>
-      </LinearGradient>
 
-      <View style={styles.max}>
-        <SectionTitle
-          title="Season performance"
-          subtitle="Snapshot — swap for live analytics later"
-        />
-        <View style={[styles.statGrid, isDesktop && styles.statGridWide]}>
-          {STATS.map((s) => (
-            <Card
-              key={s.label}
-              padding={16}
-              style={isDesktop ? { flex: 1, minWidth: 200 } : undefined}
+          <View style={styles.coverInner}>
+            <Pressable
+              onPress={onAvatarPress}
+              style={styles.avatarPress}
+              accessibilityRole="button"
+              accessibilityLabel="Change profile photo"
             >
-              <Text style={[styles.statLabel, { color: colors.textMuted }]}>
-                {s.label}
-              </Text>
-              <Text style={[styles.statValue, { color: colors.text }]}>
-                {s.value}
-              </Text>
-              <Text style={[styles.statDelta, { color: colors.textSecondary }]}>
-                {s.delta}
-              </Text>
-            </Card>
-          ))}
-        </View>
-
-        <Card padding={16}>
-          <Text style={[styles.chartTitle, { color: colors.text }]}>
-            Performance profile
-          </Text>
-          <View style={{ marginTop: 14, gap: 12 }}>
-            {BARS.map((b) => (
-              <View key={b.label}>
-                <View style={styles.barTop}>
-                  <Text style={[styles.barLabel, { color: colors.textSecondary }]}>
-                    {b.label}
-                  </Text>
-                  <Text style={[styles.barPct, { color: colors.textMuted }]}>
-                    {Math.round(b.v * 100)}%
-                  </Text>
-                </View>
-                <View
-                  style={[
-                    styles.barTrack,
-                    { backgroundColor: colors.surfaceMuted },
-                  ]}
-                >
+              <View style={styles.avatarWrap}>
+                {profile.avatarUri ? (
+                  <Image
+                    source={{ uri: profile.avatarUri }}
+                    style={[styles.avatarImg, { borderColor: colors.border }]}
+                  />
+                ) : (
                   <View
                     style={[
-                      styles.barFill,
+                      styles.avatar,
                       {
-                        width: `${Math.round(b.v * 100)}%`,
-                        backgroundColor: colors.accent,
+                        backgroundColor: colors.surface,
+                        borderColor: colors.border,
                       },
                     ]}
-                  />
+                  >
+                    <Ionicons
+                      name="person"
+                      size={44}
+                      color={colors.textSecondary}
+                    />
+                  </View>
+                )}
+                <View
+                  style={[
+                    styles.photoHint,
+                    { backgroundColor: colors.accent, borderColor: colors.bg },
+                  ]}
+                >
+                  <Ionicons name="camera" size={14} color="#fff" />
+                </View>
+                <View style={[styles.levelBadge, { backgroundColor: colors.accent }]}>
+                  <Text style={styles.levelBadgeText}>Lv. 4</Text>
                 </View>
               </View>
+            </Pressable>
+            <Text style={[styles.name, { color: colors.text }]}>
+              {profile.displayName}
+            </Text>
+            <Text style={[styles.handle, { color: colors.textSecondary }]}>
+              {subtitle}
+            </Text>
+            <View style={styles.starsRow}>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Ionicons
+                  key={i}
+                  name={i < LEVEL_STARS ? "star" : "star-outline"}
+                  size={18}
+                  color={colors.star}
+                />
+              ))}
+              <Text style={[styles.levelLabel, { color: colors.textMuted }]}>
+                Player level
+              </Text>
+            </View>
+            <View style={styles.followRow}>
+              <View style={styles.followBlock}>
+                <Text style={[styles.followNum, { color: colors.text }]}>
+                  18.4k
+                </Text>
+                <Text style={[styles.followLbl, { color: colors.textMuted }]}>
+                  Followers
+                </Text>
+              </View>
+              <View style={[styles.vsep, { backgroundColor: colors.border }]} />
+              <View style={styles.followBlock}>
+                <Text style={[styles.followNum, { color: colors.text }]}>
+                  412
+                </Text>
+                <Text style={[styles.followLbl, { color: colors.textMuted }]}>
+                  Following
+                </Text>
+              </View>
+            </View>
+          </View>
+        </LinearGradient>
+
+        <View style={styles.max}>
+          <SectionTitle
+            title="Season performance"
+            subtitle="Snapshot — swap for live analytics later"
+          />
+          <View style={[styles.statGrid, isDesktop && styles.statGridWide]}>
+            {STATS.map((s) => (
+              <Card
+                key={s.label}
+                padding={16}
+                style={isDesktop ? { flex: 1, minWidth: 200 } : undefined}
+              >
+                <Text style={[styles.statLabel, { color: colors.textMuted }]}>
+                  {s.label}
+                </Text>
+                <Text style={[styles.statValue, { color: colors.text }]}>
+                  {s.value}
+                </Text>
+                <Text style={[styles.statDelta, { color: colors.textSecondary }]}>
+                  {s.delta}
+                </Text>
+              </Card>
             ))}
           </View>
-        </Card>
 
-        <SectionTitle title="Club" subtitle="Your organization on Next Talent" />
-        <Card onPress={() => {}} padding={16} style={styles.clubCard}>
+          <Card padding={16}>
+            <Text style={[styles.chartTitle, { color: colors.text }]}>
+              Performance profile
+            </Text>
+            <View style={{ marginTop: 14, gap: 12 }}>
+              {BARS.map((b) => (
+                <View key={b.label}>
+                  <View style={styles.barTop}>
+                    <Text style={[styles.barLabel, { color: colors.textSecondary }]}>
+                      {b.label}
+                    </Text>
+                    <Text style={[styles.barPct, { color: colors.textMuted }]}>
+                      {Math.round(b.v * 100)}%
+                    </Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.barTrack,
+                      { backgroundColor: colors.surfaceMuted },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.barFill,
+                        {
+                          width: `${Math.round(b.v * 100)}%`,
+                          backgroundColor: colors.accent,
+                        },
+                      ]}
+                    />
+                  </View>
+                </View>
+              ))}
+            </View>
+          </Card>
+
+          <SectionTitle title="Club" subtitle="Your organization on Next Talent" />
+          <Card onPress={() => {}} padding={16} style={styles.clubCard}>
             <View style={styles.clubRow}>
               <View
                 style={[
@@ -164,7 +297,7 @@ export default function ProfileScreen() {
               </View>
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text style={[styles.clubName, { color: colors.text }]}>
-                  North City FC
+                  {profile.club}
                 </Text>
                 <Text style={[styles.clubMeta, { color: colors.textMuted }]}>
                   First team · Verified club page
@@ -172,84 +305,113 @@ export default function ProfileScreen() {
               </View>
               <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
             </View>
-        </Card>
-
-        <SectionTitle
-          title="Challenges Arena"
-          subtitle="Compete, climb, and earn recognition"
-        />
-        <LinearGradient
-          colors={
-            resolvedScheme === "dark"
-              ? (["#22C55E33", "#22C55E00"] as const)
-              : (["#DCFCE7", "#FFFFFF"] as const)
-          }
-          style={styles.arenaOuter}
-        >
-          <Card padding={0} elevated style={styles.arenaCard}>
-            <LinearGradient
-              colors={["#16A34A", "#22C55E"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.arenaBanner}
-            >
-              <View style={styles.arenaTop}>
-                <View style={styles.arenaIcon}>
-                  <Ionicons name="trophy" size={22} color="#fff" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.arenaKicker}>Featured</Text>
-                  <Text style={styles.arenaTitle}>Weekly finishing challenge</Text>
-                  <Text style={styles.arenaSub}>
-                    Top 50 leaderboard · closes Sunday 23:59
-                  </Text>
-                </View>
-              </View>
-            </LinearGradient>
-            <View style={styles.arenaBody}>
-              <Text style={[styles.arenaCopy, { color: colors.textSecondary }]}>
-                Enter with one tap. Progress syncs your season stats and club
-                visibility settings.
-              </Text>
-              <View style={styles.arenaActions}>
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.primaryCta,
-                    { opacity: pressed ? 0.9 : 1 },
-                  ]}
-                >
-                  <Text style={styles.primaryCtaText}>Enter arena</Text>
-                  <Ionicons name="arrow-forward" size={18} color="#fff" />
-                </Pressable>
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.ghostCta,
-                    {
-                      borderColor: colors.border,
-                      opacity: pressed ? 0.9 : 1,
-                    },
-                  ]}
-                >
-                  <Text style={[styles.ghostCtaText, { color: colors.text }]}>
-                    View rules
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
           </Card>
-        </LinearGradient>
 
-        <View style={{ height: 32 }} />
-      </View>
-    </ScrollView>
+          <SectionTitle
+            title="Challenges Arena"
+            subtitle="Compete, climb, and earn recognition"
+          />
+          <LinearGradient
+            colors={
+              resolvedScheme === "dark"
+                ? (["#22C55E33", "#22C55E00"] as const)
+                : (["#DCFCE7", "#FFFFFF"] as const)
+            }
+            style={styles.arenaOuter}
+          >
+            <Card padding={0} elevated style={styles.arenaCard}>
+              <LinearGradient
+                colors={["#16A34A", "#22C55E"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.arenaBanner}
+              >
+                <View style={styles.arenaTop}>
+                  <View style={styles.arenaIcon}>
+                    <Ionicons name="trophy" size={22} color="#fff" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.arenaKicker}>Featured</Text>
+                    <Text style={styles.arenaTitle}>Weekly finishing challenge</Text>
+                    <Text style={styles.arenaSub}>
+                      Top 50 leaderboard · closes Sunday 23:59
+                    </Text>
+                  </View>
+                </View>
+              </LinearGradient>
+              <View style={styles.arenaBody}>
+                <Text style={[styles.arenaCopy, { color: colors.textSecondary }]}>
+                  Enter with one tap. Progress syncs your season stats and club
+                  visibility settings.
+                </Text>
+                <View style={styles.arenaActions}>
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.primaryCta,
+                      { opacity: pressed ? 0.9 : 1 },
+                    ]}
+                  >
+                    <Text style={styles.primaryCtaText}>Enter arena</Text>
+                    <Ionicons name="arrow-forward" size={18} color="#fff" />
+                  </Pressable>
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.ghostCta,
+                      {
+                        borderColor: colors.border,
+                        opacity: pressed ? 0.9 : 1,
+                      },
+                    ]}
+                  >
+                    <Text style={[styles.ghostCtaText, { color: colors.text }]}>
+                      View rules
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+            </Card>
+          </LinearGradient>
+
+          <View style={{ height: 32 }} />
+        </View>
+      </ScrollView>
+
+      <EditProfileModal
+        visible={editOpen}
+        initial={profile}
+        onClose={() => setEditOpen(false)}
+        onSave={(next) => replaceProfile(next)}
+      />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   scroll: { paddingBottom: 40, flexGrow: 1 },
   cover: {
-    paddingTop: 8,
+    paddingTop: 4,
     paddingBottom: 22,
+  },
+  coverTopBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: layout.gutter,
+    marginBottom: 8,
+    minHeight: 40,
+  },
+  editPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  editLabel: {
+    fontSize: 14,
+    fontWeight: "700",
+    fontFamily: fontStack,
   },
   coverInner: {
     maxWidth: layout.maxWidth + layout.gutter * 2,
@@ -258,6 +420,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: layout.gutter,
     alignItems: "center",
   },
+  avatarPress: { alignItems: "center" },
   avatarWrap: { position: "relative", marginBottom: 12 },
   avatar: {
     width: 96,
@@ -266,6 +429,23 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     alignItems: "center",
     justifyContent: "center",
+  },
+  avatarImg: {
+    width: 96,
+    height: 96,
+    borderRadius: 32,
+    borderWidth: 3,
+  },
+  photoHint: {
+    position: "absolute",
+    right: -2,
+    bottom: 28,
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
   },
   levelBadge: {
     position: "absolute",
@@ -291,6 +471,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontSize: 14,
     fontFamily: fontStack,
+    textAlign: "center",
   },
   starsRow: {
     marginTop: 12,

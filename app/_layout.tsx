@@ -4,6 +4,7 @@ import { Slot } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ProfileProvider } from "@/contexts/ProfileContext";
 import { ThemeProvider, useAppTheme } from "@/contexts/ThemeContext";
 
 function ThemedStatusBar() {
@@ -49,7 +50,9 @@ export default function RootLayout() {
     <ErrorBoundary>
       <SafeAreaProvider>
         <ThemeProvider>
-          <RootNavigation />
+          <ProfileProvider>
+            <RootNavigation />
+          </ProfileProvider>
         </ThemeProvider>
       </SafeAreaProvider>
     </ErrorBoundary>
