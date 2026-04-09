@@ -7,20 +7,13 @@ import { MOCK_PLAYERS, type MockPlayer } from "@/data/mockPlayers";
 export type PlayerWithProfile = MockPlayer & {
   rarityLabel: string;
   rarityAccent: string;
-  ovr: number;
-  pace: number;
-  shooting: number;
-  passing: number;
-  dribbling: number;
-  defending: number;
-  physical: number;
   playStylesCount: number;
   knownAs: string | null;
   dateOfBirth: string;
-  heightLabel: string;
-  accelerationType: string;
-  skillMoves: number;
-  weakFootStars: number;
+  /** Canonical height for display toggles (metres) */
+  heightMeters: number;
+  /** Canonical weight for display toggles (kilograms) */
+  weightKg: number;
   boughtFor: string;
   owners: number;
   tradeStatus: string;
@@ -36,29 +29,17 @@ export type PlayerWithProfile = MockPlayer & {
   redCurrent: number;
 };
 
-type Extra = Omit<
-  PlayerWithProfile,
-  keyof MockPlayer
->;
+type Extra = Omit<PlayerWithProfile, keyof MockPlayer>;
 
 const EXTRAS: Record<string, Extra> = {
   "1": {
     rarityLabel: "Gold Rare",
     rarityAccent: "#5BA3E8",
-    ovr: 82,
-    pace: 84,
-    shooting: 78,
-    passing: 81,
-    dribbling: 85,
-    defending: 42,
-    physical: 73,
     playStylesCount: 3,
     knownAs: null,
     dateOfBirth: "14/03/2003",
-    heightLabel: "5'10\"",
-    accelerationType: "Controlled",
-    skillMoves: 4,
-    weakFootStars: 4,
+    heightMeters: 1.78,
+    weightKg: 76,
     boughtFor: "First Owner",
     owners: 1,
     tradeStatus: "Tradable",
@@ -76,20 +57,11 @@ const EXTRAS: Record<string, Extra> = {
   "2": {
     rarityLabel: "Rare",
     rarityAccent: "#9CA3AF",
-    ovr: 79,
-    pace: 76,
-    shooting: 72,
-    passing: 80,
-    dribbling: 78,
-    defending: 68,
-    physical: 77,
     playStylesCount: 2,
     knownAs: null,
     dateOfBirth: "02/11/2005",
-    heightLabel: "6'0\"",
-    accelerationType: "Explosive",
-    skillMoves: 3,
-    weakFootStars: 3,
+    heightMeters: 1.83,
+    weightKg: 74,
     boughtFor: "125,000 coins",
     owners: 2,
     tradeStatus: "Tradable",
@@ -107,20 +79,11 @@ const EXTRAS: Record<string, Extra> = {
   "3": {
     rarityLabel: "Gold Rare",
     rarityAccent: "#5BA3E8",
-    ovr: 81,
-    pace: 68,
-    shooting: 65,
-    passing: 72,
-    dribbling: 70,
-    defending: 45,
-    physical: 78,
     playStylesCount: 1,
     knownAs: null,
     dateOfBirth: "19/07/2001",
-    heightLabel: "6'2\"",
-    accelerationType: "Controlled",
-    skillMoves: 2,
-    weakFootStars: 3,
+    heightMeters: 1.88,
+    weightKg: 86,
     boughtFor: "First Owner",
     owners: 1,
     tradeStatus: "Untradeable",
@@ -138,20 +101,11 @@ const EXTRAS: Record<string, Extra> = {
   "4": {
     rarityLabel: "Gold Rare",
     rarityAccent: "#5BA3E8",
-    ovr: 84,
-    pace: 88,
-    shooting: 83,
-    passing: 62,
-    dribbling: 82,
-    defending: 38,
-    physical: 76,
     playStylesCount: 4,
     knownAs: null,
     dateOfBirth: "08/01/2002",
-    heightLabel: "6'0\"",
-    accelerationType: "Explosive",
-    skillMoves: 4,
-    weakFootStars: 4,
+    heightMeters: 1.83,
+    weightKg: 79,
     boughtFor: "Pack",
     owners: 1,
     tradeStatus: "Untradeable",
@@ -169,20 +123,11 @@ const EXTRAS: Record<string, Extra> = {
   "5": {
     rarityLabel: "Rare",
     rarityAccent: "#9CA3AF",
-    ovr: 77,
-    pace: 82,
-    shooting: 68,
-    passing: 74,
-    dribbling: 79,
-    defending: 71,
-    physical: 72,
     playStylesCount: 2,
     knownAs: null,
     dateOfBirth: "22/05/2004",
-    heightLabel: "5'11\"",
-    accelerationType: "Controlled",
-    skillMoves: 3,
-    weakFootStars: 2,
+    heightMeters: 1.8,
+    weightKg: 72,
     boughtFor: "47,500 coins",
     owners: 3,
     tradeStatus: "Tradable",
@@ -200,20 +145,11 @@ const EXTRAS: Record<string, Extra> = {
   "6": {
     rarityLabel: "Gold Rare",
     rarityAccent: "#5BA3E8",
-    ovr: 80,
-    pace: 91,
-    shooting: 76,
-    passing: 73,
-    dribbling: 84,
-    defending: 44,
-    physical: 69,
     playStylesCount: 3,
     knownAs: null,
     dateOfBirth: "11/09/2006",
-    heightLabel: "5'9\"",
-    accelerationType: "Explosive",
-    skillMoves: 4,
-    weakFootStars: 3,
+    heightMeters: 1.75,
+    weightKg: 68,
     boughtFor: "First Owner",
     owners: 1,
     tradeStatus: "Tradable",
@@ -231,20 +167,11 @@ const EXTRAS: Record<string, Extra> = {
   "7": {
     rarityLabel: "Rare",
     rarityAccent: "#9CA3AF",
-    ovr: 78,
-    pace: 72,
-    shooting: 55,
-    passing: 66,
-    dribbling: 68,
-    defending: 80,
-    physical: 81,
     playStylesCount: 1,
     knownAs: null,
     dateOfBirth: "30/04/1998",
-    heightLabel: "6'3\"",
-    accelerationType: "Controlled",
-    skillMoves: 2,
-    weakFootStars: 3,
+    heightMeters: 1.91,
+    weightKg: 84,
     boughtFor: "SBC",
     owners: 1,
     tradeStatus: "Untradeable",
@@ -262,20 +189,11 @@ const EXTRAS: Record<string, Extra> = {
   "8": {
     rarityLabel: "Gold Rare",
     rarityAccent: "#5BA3E8",
-    ovr: 83,
-    pace: 74,
-    shooting: 72,
-    passing: 79,
-    dribbling: 77,
-    defending: 78,
-    physical: 80,
     playStylesCount: 2,
     knownAs: null,
     dateOfBirth: "03/12/2000",
-    heightLabel: "5'11\"",
-    accelerationType: "Controlled",
-    skillMoves: 3,
-    weakFootStars: 4,
+    heightMeters: 1.8,
+    weightKg: 78,
     boughtFor: "200,000 coins",
     owners: 1,
     tradeStatus: "Tradable",
@@ -293,20 +211,11 @@ const EXTRAS: Record<string, Extra> = {
   "9": {
     rarityLabel: "Gold Rare",
     rarityAccent: "#5BA3E8",
-    ovr: 81,
-    pace: 89,
-    shooting: 77,
-    passing: 75,
-    dribbling: 86,
-    defending: 40,
-    physical: 71,
     playStylesCount: 3,
     knownAs: null,
     dateOfBirth: "17/06/2004",
-    heightLabel: "5'8\"",
-    accelerationType: "Explosive",
-    skillMoves: 4,
-    weakFootStars: 5,
+    heightMeters: 1.73,
+    weightKg: 65,
     boughtFor: "First Owner",
     owners: 1,
     tradeStatus: "Untradeable",
@@ -324,20 +233,11 @@ const EXTRAS: Record<string, Extra> = {
   "10": {
     rarityLabel: "Rare",
     rarityAccent: "#9CA3AF",
-    ovr: 75,
-    pace: 86,
-    shooting: 62,
-    passing: 70,
-    dribbling: 76,
-    defending: 74,
-    physical: 73,
     playStylesCount: 1,
     knownAs: null,
     dateOfBirth: "01/01/2007",
-    heightLabel: "5'10\"",
-    accelerationType: "Explosive",
-    skillMoves: 3,
-    weakFootStars: 3,
+    heightMeters: 1.78,
+    weightKg: 71,
     boughtFor: "Academy",
     owners: 1,
     tradeStatus: "Untradeable",
@@ -355,20 +255,11 @@ const EXTRAS: Record<string, Extra> = {
   "11": {
     rarityLabel: "Gold Rare",
     rarityAccent: "#5BA3E8",
-    ovr: 85,
-    pace: 83,
-    shooting: 86,
-    passing: 74,
-    dribbling: 84,
-    defending: 42,
-    physical: 79,
     playStylesCount: 4,
     knownAs: null,
     dateOfBirth: "25/09/1999",
-    heightLabel: "6'1\"",
-    accelerationType: "Controlled",
-    skillMoves: 4,
-    weakFootStars: 4,
+    heightMeters: 1.85,
+    weightKg: 82,
     boughtFor: "Pack",
     owners: 1,
     tradeStatus: "Tradable",
@@ -386,20 +277,11 @@ const EXTRAS: Record<string, Extra> = {
   "12": {
     rarityLabel: "Rare",
     rarityAccent: "#9CA3AF",
-    ovr: 80,
-    pace: 78,
-    shooting: 75,
-    passing: 82,
-    dribbling: 80,
-    defending: 70,
-    physical: 76,
     playStylesCount: 2,
     knownAs: null,
     dateOfBirth: "14/02/1997",
-    heightLabel: "6'0\"",
-    accelerationType: "Controlled",
-    skillMoves: 3,
-    weakFootStars: 4,
+    heightMeters: 1.83,
+    weightKg: 77,
     boughtFor: "95,000 coins",
     owners: 4,
     tradeStatus: "Tradable",
@@ -417,20 +299,11 @@ const EXTRAS: Record<string, Extra> = {
   [CURRENT_USER_PLAYER_ID]: {
     rarityLabel: "Gold Rare",
     rarityAccent: "#5BA3E8",
-    ovr: 81,
-    pace: 88,
-    shooting: 79,
-    passing: 76,
-    dribbling: 83,
-    defending: 45,
-    physical: 74,
     playStylesCount: 3,
     knownAs: null,
     dateOfBirth: "15/06/2002",
-    heightLabel: "5'11\"",
-    accelerationType: "Explosive",
-    skillMoves: 4,
-    weakFootStars: 4,
+    heightMeters: 1.8,
+    weightKg: 73,
     boughtFor: "First Owner",
     owners: 1,
     tradeStatus: "Tradable",
@@ -449,24 +322,14 @@ const EXTRAS: Record<string, Extra> = {
 
 function fallbackExtra(p: MockPlayer): Extra {
   const n = parseInt(p.id, 10) || 1;
-  const ovr = 75 + (n % 12);
   return {
     rarityLabel: "Rare",
     rarityAccent: "#9CA3AF",
-    ovr,
-    pace: 70 + (n * 2) % 20,
-    shooting: 68 + (n * 3) % 22,
-    passing: 65 + (n * 5) % 25,
-    dribbling: 70 + (n * 7) % 20,
-    defending: 55 + (n * 11) % 30,
-    physical: 72 + (n * 13) % 18,
     playStylesCount: 1 + (n % 3),
     knownAs: null,
     dateOfBirth: "01/01/2000",
-    heightLabel: "5'11\"",
-    accelerationType: "Controlled",
-    skillMoves: 3,
-    weakFootStars: 3,
+    heightMeters: 1.78 + (n % 10) * 0.02,
+    weightKg: 70 + (n % 15),
     boughtFor: "—",
     owners: 1,
     tradeStatus: "Tradable",
@@ -491,7 +354,13 @@ export function getPlayerWithProfile(
     if (!profile) return undefined;
     const base = profileToSearchPlayer(profile);
     const extra = EXTRAS[CURRENT_USER_PLAYER_ID] ?? fallbackExtra(base);
-    return { ...base, ...extra };
+    return {
+      ...base,
+      ...extra,
+      heightMeters: profile.heightMeters,
+      weightKg: profile.weightKg,
+      nation: profile.nationality,
+    };
   }
   const base = MOCK_PLAYERS.find((x) => x.id === id);
   if (!base) return undefined;

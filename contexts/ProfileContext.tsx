@@ -24,6 +24,10 @@ export type ProfileData = {
   searchFoot: string;
   /** Age for Search; null = match any age filter */
   searchAge: number | null;
+  /** Player profile card / bio (metres) */
+  heightMeters: number;
+  /** Player profile card / bio (kilograms) */
+  weightKg: number;
 };
 
 const defaultProfile: ProfileData = {
@@ -36,6 +40,8 @@ const defaultProfile: ProfileData = {
   searchPosition: "Any",
   searchFoot: "",
   searchAge: null,
+  heightMeters: 1.8,
+  weightKg: 73,
 };
 
 type ProfileContextValue = {

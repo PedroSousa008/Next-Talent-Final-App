@@ -20,6 +20,12 @@ import {
   type PlayerWithProfile,
 } from "@/data/playerProfileExtras";
 import { useBreakpoint } from "@/hooks/useBreakpoint";
+import {
+  formatHeightMeters,
+  formatWeightKg,
+  formatWeightLb,
+  metersToFeetInches,
+} from "@/lib/playerMeasurements";
 import { fontStack, layout } from "@/constants/theme";
 
 const SCREEN_BG = "#0B0E12";
@@ -29,21 +35,6 @@ const TEXT_MUTED = "rgba(255,255,255,0.45)";
 const DIVIDER = "rgba(255,255,255,0.08)";
 
 type TabId = "bio" | "details";
-
-function StarRow({ value, max = 5 }: { value: number; max?: number }) {
-  return (
-    <View style={styles.starRow}>
-      {Array.from({ length: max }, (_, i) => (
-        <Ionicons
-          key={i}
-          name="star"
-          size={16}
-          color={i < value ? "#EAB308" : "rgba(255,255,255,0.2)"}
-        />
-      ))}
-    </View>
-  );
-}
 
 function InfoRow({
   label,
@@ -65,11 +56,30 @@ function InfoRow({
   );
 }
 
-function StatCell({ k, v }: { k: string; v: number }) {
+function ToggleMetricRow({
+  label,
+  value,
+  switchLabel,
+  onToggle,
+}: {
+  label: string;
+  value: string;
+  switchLabel: string;
+  onToggle: () => void;
+}) {
   return (
-    <View style={styles.statCell}>
-      <Text style={styles.statKey}>{k}</Text>
-      <Text style={styles.statVal}>{v}</Text>
+    <View style={styles.infoRow}>
+      <Text style={styles.infoLabel}>{label}</Text>
+      <Pressable
+        onPress={onToggle}
+        accessibilityRole="button"
+        accessibilityLabel={`${label}: ${switchLabel}`}
+        style={styles.toggleMetricPress}
+      >
+        <Text style={styles.infoValue}>{value}</Text>
+        <Text style={styles.unitSwitchHint}>{switchLabel}</Text>
+      </Pressable>
+      <View style={[styles.infoDivider, { backgroundColor: DIVIDER }]} />
     </View>
   );
 }
@@ -85,7 +95,7 @@ function PlayerFifaCard({ p }: { p: PlayerWithProfile }) {
         style={styles.cardGradient}
       >
         <View style={styles.cardTopRow}>
-          <Text style={styles.cardOvr}>{p.ovr}</Text>
+          <Text style={styles.cardAge}>{p.age}</Text>
           <Text style={styles.cardPos}>{p.position}</Text>
         </View>
         <View style={styles.cardPhoto}>
@@ -102,14 +112,6 @@ function PlayerFifaCard({ p }: { p: PlayerWithProfile }) {
           <Text style={[styles.cardRarity, { color: p.rarityAccent }]}>
             {p.rarityLabel}
           </Text>
-        </View>
-        <View style={styles.statGrid}>
-          <StatCell k="PAC" v={p.pace} />
-          <StatCell k="SHO" v={p.shooting} />
-          <StatCell k="PAS" v={p.passing} />
-          <StatCell k="DRI" v={p.dribbling} />
-          <StatCell k="DEF" v={p.defending} />
-          <StatCell k="PHY" v={p.physical} />
         </View>
         <View style={styles.cardMetaRow}>
           <View style={styles.metaDot}>
@@ -133,22 +135,41 @@ function PlayerFifaCard({ p }: { p: PlayerWithProfile }) {
 }
 
 function PlayerBioPanel({ p }: { p: PlayerWithProfile }) {
+  const [heightUnit, setHeightUnit] = useState<"m" | "ft">("m");
+  const [weightUnit, setWeightUnit] = useState<"kg" | "lb">("kg");
+
+  const heightDisplay =
+    heightUnit === "m"
+      ? formatHeightMeters(p.heightMeters)
+      : metersToFeetInches(p.heightMeters);
+  const weightDisplay =
+    weightUnit === "kg"
+      ? formatWeightKg(p.weightKg)
+      : formatWeightLb(p.weightKg);
+
   return (
     <View style={styles.panel}>
       <Text style={styles.panelTitle}>Player</Text>
       <InfoRow label="Name" value={p.name} />
       <InfoRow label="Known As" value={p.knownAs ?? "-"} />
       <InfoRow label="Date of Birth" value={p.dateOfBirth} />
-      <InfoRow label="Height" value={p.heightLabel} />
-      <InfoRow label="Acceleration Type" value={p.accelerationType} />
-      <InfoRow label="Skill Moves">
-        <StarRow value={p.skillMoves} />
-      </InfoRow>
-      <InfoRow label="Weak Foot">
-        <StarRow value={p.weakFootStars} />
-      </InfoRow>
+      <ToggleMetricRow
+        label="Height"
+        value={heightDisplay}
+        switchLabel={
+          heightUnit === "m" ? "Tap for ft / in" : "Tap for metres"
+        }
+        onToggle={() => setHeightUnit((u) => (u === "m" ? "ft" : "m"))}
+      />
+      <ToggleMetricRow
+        label="Weight"
+        value={weightDisplay}
+        switchLabel={weightUnit === "kg" ? "Tap for lbs" : "Tap for kg"}
+        onToggle={() => setWeightUnit((u) => (u === "kg" ? "lb" : "kg"))}
+      />
+      <InfoRow label="Nationality" value={p.nation} />
       <InfoRow
-        label="Preferred Foot"
+        label="Dominant Foot"
         value={preferredFootShort(String(p.dominantFoot))}
       />
     </View>
@@ -405,14 +426,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingTop: 10,
     paddingBottom: 12,
-    minHeight: 300,
+    minHeight: 220,
   },
   cardTopRow: {
     flexDirection: "row",
     alignItems: "flex-start",
     justifyContent: "space-between",
   },
-  cardOvr: {
+  cardAge: {
     color: "#fff",
     fontSize: 28,
     fontWeight: "900",
@@ -451,32 +472,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "700",
     marginTop: 2,
-    fontFamily: fontStack,
-  },
-  statGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    rowGap: 6,
-    columnGap: 4,
-    justifyContent: "space-between",
-  },
-  statCell: {
-    width: "31%",
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "space-between",
-    paddingVertical: 2,
-  },
-  statKey: {
-    color: TEXT_MUTED,
-    fontSize: 11,
-    fontWeight: "700",
-    fontFamily: fontStack,
-  },
-  statVal: {
-    color: "#fff",
-    fontSize: 13,
-    fontWeight: "800",
     fontFamily: fontStack,
   },
   cardMetaRow: {
@@ -544,14 +539,19 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     fontFamily: fontStack,
   },
+  toggleMetricPress: {
+    alignSelf: "flex-start",
+  },
+  unitSwitchHint: {
+    color: TEXT_MUTED,
+    fontSize: 12,
+    fontWeight: "600",
+    marginTop: 4,
+    fontFamily: fontStack,
+  },
   infoDivider: {
     height: StyleSheet.hairlineWidth,
     marginTop: 12,
-  },
-  starRow: {
-    flexDirection: "row",
-    gap: 4,
-    alignItems: "center",
   },
   detailsOnly: {
     maxWidth: 560,

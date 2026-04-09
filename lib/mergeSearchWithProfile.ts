@@ -49,7 +49,7 @@ export function profileToSearchPlayer(profile: ProfileData): SearchListPlayer {
     profile.searchFoot && profile.searchFoot.length > 0
       ? profile.searchFoot
       : "Right Foot";
-  const age = profile.searchAge ?? 21;
+  const age = profile.searchAge ?? 18;
   return {
     id: CURRENT_USER_PLAYER_ID,
     name: profile.displayName,

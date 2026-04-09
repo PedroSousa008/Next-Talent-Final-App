@@ -41,6 +41,10 @@ export function EditProfileModal({
   const [searchPositionIndex, setSearchPositionIndex] = useState(0);
   const [searchFootIndex, setSearchFootIndex] = useState(0);
   const [searchAgeIndex, setSearchAgeIndex] = useState(0);
+  const [heightMetersStr, setHeightMetersStr] = useState(
+    String(initial.heightMeters)
+  );
+  const [weightKgStr, setWeightKgStr] = useState(String(initial.weightKg));
   const [pickKind, setPickKind] = useState<
     "search-position" | "search-foot" | "search-age" | null
   >(null);
@@ -71,12 +75,16 @@ export function EditProfileModal({
         ageLabel as (typeof AGE_OPTIONS)[number]
       );
       setSearchAgeIndex(ai >= 0 ? ai : 0);
+      setHeightMetersStr(String(initial.heightMeters));
+      setWeightKgStr(String(initial.weightKg));
     }
   }, [visible, initial, positionOptions, footOptions, ageOptions]);
 
   const handleSave = () => {
     const footPick = footOptions[searchFootIndex] ?? "Any";
     const agePick = ageOptions[searchAgeIndex] ?? "Any";
+    const hm = parseFloat(heightMetersStr.replace(",", "."));
+    const wk = parseFloat(weightKgStr.replace(",", "."));
     onSave({
       ...initial,
       displayName: displayName.trim() || initial.displayName,
@@ -87,6 +95,10 @@ export function EditProfileModal({
       searchFoot: footPick === "Any" ? "" : footPick,
       searchAge:
         agePick === "Any" ? null : parseInt(agePick, 10),
+      heightMeters:
+        Number.isFinite(hm) && hm > 0.5 && hm < 3 ? hm : initial.heightMeters,
+      weightKg:
+        Number.isFinite(wk) && wk > 20 && wk < 200 ? wk : initial.weightKg,
     });
     onClose();
   };
@@ -175,6 +187,18 @@ export function EditProfileModal({
           {field("Position", position, setPosition, "e.g. Winger")}
           {field("Club", club, setClub, "Your club")}
           {field("Nationality", nationality, setNationality, "e.g. Portugal")}
+          {field(
+            "Height (m)",
+            heightMetersStr,
+            setHeightMetersStr,
+            "e.g. 1.80"
+          )}
+          {field(
+            "Weight (kg)",
+            weightKgStr,
+            setWeightKgStr,
+            "e.g. 73"
+          )}
 
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
             Search filters (how others find you)
