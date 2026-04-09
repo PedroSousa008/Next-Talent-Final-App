@@ -1,0 +1,22 @@
+---
+description: Terminal ownership and Vercel deploy workflow for Next Talent
+alwaysApply: true
+---
+
+# Workflow (mandatory)
+
+## Terminal
+
+- **Never** instruct the user to run shell commands themselves (no “run this in your terminal”).
+- **Always** execute installs, builds, tests, git, and deploy-related commands via the agent using the available tools, unless the environment truly cannot run them (then state that limitation briefly).
+
+## Vercel / deploy after changes
+
+- After completing a meaningful batch of changes to the site, **trigger a production deploy** without asking the user to deploy manually.
+- **Preferred:** If the repo is linked to GitHub and Vercel has **automatic deployments on push**, run `git add`, `commit`, and `git push` (request `git_write` + `network`) so Vercel builds automatically.
+- **Alternative:** If the project uses Vercel CLI with a token available in the environment, run `npx vercel --prod` (or the project’s deploy script) after changes.
+- If neither git remote nor CLI deploy is possible in the environment, say so in one sentence—do not dump a tutorial.
+
+## Scope
+
+- Applies to all work in this repository unless the user explicitly opts out for a specific task.
