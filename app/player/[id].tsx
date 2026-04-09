@@ -213,22 +213,19 @@ function PlayerFifaCard({ p }: { p: PlayerWithProfile }) {
           <Text style={styles.cardSurname} numberOfLines={1}>
             {last}
           </Text>
-          <Text style={styles.cardNumberLine}>
-            Number: {p.shirtNumber}
-          </Text>
         </View>
         <View style={styles.cardMetaRow}>
           <View style={styles.metaTripLeft}>
             <Image
-              source={LEAGUE_BADGE}
-              style={styles.metaLeagueImg}
+              source={SLB_LOGO}
+              style={styles.metaTripClubImg}
               resizeMode="contain"
             />
           </View>
           <View style={styles.metaTripCenter}>
             <Image
-              source={SLB_LOGO}
-              style={styles.metaTripClubImg}
+              source={LEAGUE_BADGE}
+              style={styles.metaLeagueImg}
               resizeMode="contain"
             />
           </View>
@@ -608,14 +605,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     fontFamily: fontStack,
   },
-  cardNumberLine: {
-    fontSize: 12,
-    fontWeight: "800",
-    marginTop: 2,
-    fontFamily: fontStack,
-    color: "rgba(255,255,255,0.88)",
-  },
-  /** Three equal columns: league | SLB logo (slb.logo.png) | nationality flag */
+  /** Three equal columns: SLB (slb.logo.png) | league.png | nationality flag */
   cardMetaRow: {
     flexDirection: "row",
     alignItems: "center",
