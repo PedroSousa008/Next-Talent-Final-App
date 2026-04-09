@@ -34,7 +34,6 @@ export function EditProfileModal({
 }: Props) {
   const { colors } = useAppTheme();
   const [displayName, setDisplayName] = useState(initial.displayName);
-  const [position, setPosition] = useState(initial.position);
   const [club, setClub] = useState(initial.club);
   const [nationality, setNationality] = useState(initial.nationality);
   const [dateOfBirth, setDateOfBirth] = useState(initial.dateOfBirth);
@@ -60,7 +59,6 @@ export function EditProfileModal({
   useEffect(() => {
     if (visible) {
       setDisplayName(initial.displayName);
-      setPosition(initial.position);
       setClub(initial.club);
       setNationality(initial.nationality);
       setDateOfBirth(initial.dateOfBirth);
@@ -79,6 +77,7 @@ export function EditProfileModal({
 
   const handleSave = () => {
     const footPick = footOptions[searchFootIndex] ?? "Any";
+    const spi = positionOptions[searchPositionIndex] ?? "Any";
     const hm = parseFloat(heightMetersStr.replace(",", "."));
     const wk = parseFloat(weightKgStr.replace(",", "."));
     const sn = parseInt(shirtNumberStr.replace(/\D/g, ""), 10);
@@ -87,7 +86,7 @@ export function EditProfileModal({
     onSave({
       displayName: displayName.trim() || initial.displayName,
       handle: initial.handle,
-      position: position.trim() || initial.position,
+      position: spi !== "Any" ? spi : initial.position,
       club: club.trim() || initial.club,
       nationality: nationality.trim() || initial.nationality,
       avatarUri: initial.avatarUri,
@@ -199,7 +198,6 @@ export function EditProfileModal({
             setShirtNumberStr,
             "e.g. 8"
           )}
-          {field("Position", position, setPosition, "e.g. Winger")}
           {field("Club", club, setClub, "Your club")}
           {field("Nationality", nationality, setNationality, "e.g. Portugal")}
           {field(
@@ -219,8 +217,9 @@ export function EditProfileModal({
             Search filters (how others find you)
           </Text>
           <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
-            Age in Search uses your date of birth and updates every year on your
-            birthday. Leave position or foot as “Any” to match any filter.
+            Set your playing position below (also used on your profile card).
+            Age in Search uses your date of birth. Use “Any” to match any
+            filter.
           </Text>
           {pickRow(
             "Search · Position",

@@ -215,7 +215,11 @@ function PlayerFifaCard({ p }: { p: PlayerWithProfile }) {
             </Text>
           </View>
           <View style={styles.metaLeagueWrap}>
-            <Image source={LEAGUE_BADGE} style={styles.metaLeagueImg} resizeMode="contain" />
+            <Image
+              source={LEAGUE_BADGE}
+              style={styles.metaLeagueImg}
+              resizeMode="contain"
+            />
           </View>
           <View style={[styles.metaDot, styles.metaClubWrap]}>
             <Text style={styles.metaClub} numberOfLines={1}>
@@ -617,19 +621,15 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 24,
   },
+  /** League logo: rectangular / free — not a circle (nationality only uses a circle). */
   metaLeagueWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "rgba(255,255,255,0.12)",
     alignItems: "center",
     justifyContent: "center",
-    overflow: "hidden",
-    padding: 4,
+    paddingVertical: 2,
   },
   metaLeagueImg: {
-    width: 24,
-    height: 24,
+    width: 44,
+    height: 30,
   },
   metaDot: {
     borderRadius: 14,

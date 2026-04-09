@@ -43,7 +43,9 @@ export function profileMatchesSearchCriteria(
 
 export function profileToSearchPlayer(profile: ProfileData): SearchListPlayer {
   const position =
-    profile.searchPosition !== "Any" ? profile.searchPosition : "CM";
+    profile.searchPosition !== "Any"
+      ? profile.searchPosition
+      : profile.position || "CM";
   const foot =
     profile.searchFoot && profile.searchFoot.length > 0
       ? profile.searchFoot
