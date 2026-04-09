@@ -18,7 +18,7 @@ import { getClubHubForSlug } from "@/data/clubHubMock";
 import { slugToTitle } from "@/lib/clubSlug";
 import { fontStack, layout } from "@/constants/theme";
 
-const SLB_LOGO = require("@/assets/slb.logo.png");
+const SLB_LOGO = require("@/assets/slbenfica.png");
 
 type HubTab = "calendar" | "documents" | "squad";
 

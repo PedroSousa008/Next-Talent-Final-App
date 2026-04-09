@@ -1,9 +1,9 @@
 import type { ImageSourcePropType } from "react-native";
 
-const BENFICA = require("@/assets/slb.logo.png") as ImageSourcePropType;
+const BENFICA = require("@/assets/slbenfica.png") as ImageSourcePropType;
 
 /**
- * Bundled crest when `club` matches (SLB / Benfica — assets/slb.logo.png).
+ * Bundled crest when `club` matches (SLB / Benfica — assets/slbenfica.png).
  */
 export function clubLogoSource(club: string): ImageSourcePropType | null {
   const n = club.trim().toLowerCase();

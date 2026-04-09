@@ -32,7 +32,7 @@ import {
 import { nationFlagEmoji } from "@/constants/nationFlagEmoji";
 import { fontStack, layout } from "@/constants/theme";
 
-const LEAGUE_BADGE = require("@/assets/league.png");
+const CARD_LEFT_BADGE = require("@/assets/slbenfica.png");
 
 const SCREEN_BG = "#0B0E12";
 const CARD_GOLD_TOP = "rgba(201, 162, 39, 0.35)";
@@ -215,7 +215,7 @@ function PlayerFifaCard({ p }: { p: PlayerWithProfile }) {
         <View style={styles.cardMetaRow}>
           <View style={styles.metaTripLeft}>
             <Image
-              source={LEAGUE_BADGE}
+              source={CARD_LEFT_BADGE}
               style={styles.metaLeagueImg}
               resizeMode="contain"
             />
@@ -596,7 +596,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     fontFamily: fontStack,
   },
-  /** Two columns: league.png | nationality flag */
+  /** Two columns: slbenfica.png | nationality flag */
   cardMetaRow: {
     flexDirection: "row",
     alignItems: "center",
