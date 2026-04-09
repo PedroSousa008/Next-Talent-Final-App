@@ -211,30 +211,32 @@ function PlayerFifaCard({ p }: { p: PlayerWithProfile }) {
           </Text>
         </View>
         <View style={styles.cardMetaRow}>
-          <View style={styles.metaFlagWrap}>
-            <Text style={styles.metaFlagEmoji} allowFontScaling={false}>
-              {flag}
-            </Text>
+          <View style={styles.metaTripLeft}>
+            {clubLogo != null ? (
+              <Image
+                source={clubLogo}
+                style={styles.metaTripClubImg}
+                resizeMode="contain"
+              />
+            ) : (
+              <Text style={styles.metaClubFallback} numberOfLines={1}>
+                {p.club}
+              </Text>
+            )}
           </View>
-          <View style={styles.metaLeagueWrap}>
+          <View style={styles.metaTripCenter}>
             <Image
               source={LEAGUE_BADGE}
               style={styles.metaLeagueImg}
               resizeMode="contain"
             />
           </View>
-          <View style={styles.metaClubSlot}>
-            {clubLogo != null ? (
-              <Image
-                source={clubLogo}
-                style={styles.metaClubLogo}
-                resizeMode="contain"
-              />
-            ) : (
-              <Text style={styles.metaClub} numberOfLines={1}>
-                {p.club}
+          <View style={styles.metaTripRight}>
+            <View style={styles.metaFlagWrap}>
+              <Text style={styles.metaFlagEmoji} allowFontScaling={false}>
+                {flag}
               </Text>
-            )}
+            </View>
           </View>
         </View>
       </LinearGradient>
@@ -612,11 +614,35 @@ const styles = StyleSheet.create({
     fontFamily: fontStack,
     color: "rgba(255,255,255,0.88)",
   },
+  /** Three equal columns: club (Benfica.png) | league (card center) | nationality flag */
   cardMetaRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
     marginTop: 12,
+    width: "100%",
+    paddingHorizontal: 2,
+  },
+  metaTripLeft: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 36,
+  },
+  metaTripCenter: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 36,
+  },
+  metaTripRight: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 36,
+  },
+  metaTripClubImg: {
+    width: 42,
+    height: 34,
   },
   metaFlagWrap: {
     width: 32,
@@ -631,15 +657,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 24,
   },
-  /** League logo: rectangular / free — not a circle (nationality only uses a circle). */
-  metaLeagueWrap: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 2,
-  },
   metaLeagueImg: {
-    width: 44,
-    height: 30,
+    width: 48,
+    height: 34,
   },
   metaDot: {
     borderRadius: 14,
@@ -651,25 +671,13 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     minHeight: 28,
   },
-  metaClubSlot: {
-    flex: 1,
-    minWidth: 0,
-    minHeight: 28,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 2,
-  },
-  metaClubLogo: {
-    width: "100%",
-    maxWidth: 88,
-    height: 28,
-  },
-  metaClub: {
+  metaClubFallback: {
     color: "rgba(255,255,255,0.75)",
     fontSize: 9,
     fontWeight: "700",
     fontFamily: fontStack,
     textAlign: "center",
+    paddingHorizontal: 4,
   },
   panel: {
     flex: 1,
