@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import { Platform, View } from "react-native";
 import { Slot } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import * as SystemUI from "expo-system-ui";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeProvider, useAppTheme } from "@/contexts/ThemeContext";
@@ -29,8 +28,6 @@ function RootNavigation() {
       if (root) {
         root.style.backgroundColor = bg;
       }
-    } else if (Platform.OS !== "web") {
-      void SystemUI.setBackgroundColorAsync(colors.bg);
     }
   }, [colors.bg]);
 
