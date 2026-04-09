@@ -1,5 +1,6 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
+  Alert,
   ImageBackground,
   Pressable,
   ScrollView,
@@ -10,83 +11,157 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { HorizontalPickModal } from "@/components/search/HorizontalPickModal";
+import { PlayerNameModal } from "@/components/search/PlayerNameModal";
+import {
+  AGE_OPTIONS,
+  DOMINANT_FOOT_OPTIONS,
+  POSITION_OPTIONS,
+} from "@/constants/searchFilters";
 import { useAppTheme } from "@/contexts/ThemeContext";
 import { fontStack, layout } from "@/constants/theme";
 import { useBreakpoint } from "@/hooks/useBreakpoint";
 
+export type SearchModalKind =
+  | "player-name"
+  | "position"
+  | "dominant-foot"
+  | "age"
+  | null;
+
 /**
- * Eight filter tiles — behaviors are wired later (modals, navigation, etc.).
- * IDs are stable for future integration.
+ * Eight filter tiles — four wired (player name, dominant foot, position, age); rest later.
  */
 export const SEARCH_FILTER_BOXES = [
   {
     id: "player-name",
     title: "Player Name",
     icon: "person" as const,
-    bottom: "Any",
   },
   {
-    id: "quality",
-    title: "Quality",
-    icon: "star-outline" as const,
-    bottom: "Any",
+    id: "dominant-foot",
+    title: "Dominant Foot",
+    icon: "body-outline" as const,
   },
   {
     id: "position",
     title: "Position",
     icon: "shirt-outline" as const,
-    bottom: "Any",
   },
   {
     id: "style",
     title: "Chemistry Style",
     icon: "sparkles-outline" as const,
-    bottom: "Any",
   },
   {
-    id: "value",
-    title: "Value",
-    icon: "cash-outline" as const,
-    bottom: "Any",
+    id: "age",
+    title: "Age",
+    icon: "calendar-outline" as const,
   },
   {
     id: "nation",
     title: "Nation / Region",
     icon: "flag-outline" as const,
-    bottom: "Any",
   },
   {
     id: "league",
     title: "League",
     icon: "globe-outline" as const,
-    bottom: "Any",
   },
   {
     id: "club",
     title: "Club",
     icon: "shield-outline" as const,
-    bottom: "Any",
   },
 ] as const;
 
 const STADIUM_BG =
   "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1600&q=80";
 
+function truncate(s: string, max: number) {
+  if (s.length <= max) return s;
+  return `${s.slice(0, max - 1)}…`;
+}
+
 export default function SearchScreen() {
   const { colors, resolvedScheme } = useAppTheme();
   const { isDesktop } = useBreakpoint();
   const { width: screenW } = useWindowDimensions();
-  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const [playerName, setPlayerName] = useState("");
+  const [positionIndex, setPositionIndex] = useState(0);
+  const [footIndex, setFootIndex] = useState(0);
+  const [ageIndex, setAgeIndex] = useState(0);
+  const [modal, setModal] = useState<SearchModalKind>(null);
+
+  const bottomLabel = useCallback(
+    (id: string) => {
+      switch (id) {
+        case "player-name":
+          return playerName.trim() ? truncate(playerName.trim(), 14) : "Any";
+        case "position":
+          return POSITION_OPTIONS[positionIndex];
+        case "dominant-foot":
+          return DOMINANT_FOOT_OPTIONS[footIndex];
+        case "age":
+          return AGE_OPTIONS[ageIndex];
+        default:
+          return "Any";
+      }
+    },
+    [playerName, positionIndex, footIndex, ageIndex]
+  );
+
+  const isHighlighted = useCallback(
+    (id: string) => {
+      switch (id) {
+        case "player-name":
+          return playerName.trim().length > 0;
+        case "position":
+          return positionIndex !== 0;
+        case "dominant-foot":
+          return footIndex !== 0;
+        case "age":
+          return ageIndex !== 0;
+        default:
+          return false;
+      }
+    },
+    [playerName, positionIndex, footIndex, ageIndex]
+  );
+
+  const onBoxPress = useCallback((id: string) => {
+    switch (id) {
+      case "player-name":
+        setModal("player-name");
+        break;
+      case "position":
+        setModal("position");
+        break;
+      case "dominant-foot":
+        setModal("dominant-foot");
+        break;
+      case "age":
+        setModal("age");
+        break;
+      case "style":
+      case "nation":
+      case "league":
+      case "club":
+        Alert.alert(
+          "Coming soon",
+          "You will be able to set this filter in a future update."
+        );
+        break;
+      default:
+        break;
+    }
+  }, []);
 
   const cols = isDesktop ? 4 : 2;
   const gap = 10;
   const gridWidth = Math.min(screenW - layout.gutter * 2, layout.maxWidth);
   const boxW = Math.max(96, (gridWidth - gap * (cols - 1)) / cols);
-
-  const onBoxPress = useCallback((id: string) => {
-    setActiveId((prev) => (prev === id ? null : id));
-    // Future: open sheet / route / modal per id
-  }, []);
 
   const overlayColors =
     resolvedScheme === "dark"
@@ -96,6 +171,10 @@ export default function SearchScreen() {
   const gold = "#C9A227";
   const highlightBorder = gold;
   const highlightBg = resolvedScheme === "dark" ? "rgba(201,162,39,0.22)" : "rgba(201,162,39,0.18)";
+
+  const positionOptions = useMemo(() => [...POSITION_OPTIONS], []);
+  const footOptions = useMemo(() => [...DOMINANT_FOOT_OPTIONS], []);
+  const ageOptions = useMemo(() => [...AGE_OPTIONS], []);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.bg }]}>
@@ -113,7 +192,7 @@ export default function SearchScreen() {
             <View style={styles.head}>
               <Text style={[styles.pageTitle, { color: "#fff" }]}>Search</Text>
               <Text style={[styles.pageSub, { color: "rgba(255,255,255,0.72)" }]}>
-                Tap a tile to focus it — actions coming next.
+                Tap a tile to set filters. Swipe or use arrows for lists.
               </Text>
             </View>
 
@@ -128,7 +207,7 @@ export default function SearchScreen() {
               ]}
             >
               {SEARCH_FILTER_BOXES.map((box) => {
-                const selected = activeId === box.id;
+                const selected = isHighlighted(box.id);
                 return (
                   <Pressable
                     key={box.id}
@@ -140,7 +219,9 @@ export default function SearchScreen() {
                         backgroundColor: selected
                           ? highlightBg
                           : "rgba(255,255,255,0.08)",
-                        borderColor: selected ? highlightBorder : "rgba(255,255,255,0.22)",
+                        borderColor: selected
+                          ? highlightBorder
+                          : "rgba(255,255,255,0.22)",
                         opacity: pressed ? 0.92 : 1,
                       },
                     ]}
@@ -156,7 +237,7 @@ export default function SearchScreen() {
                       />
                     </View>
                     <Text style={[styles.boxBottom, { color: "rgba(255,255,255,0.65)" }]}>
-                      {box.bottom}
+                      {bottomLabel(box.id)}
                     </Text>
                   </Pressable>
                 );
@@ -167,6 +248,40 @@ export default function SearchScreen() {
           </ScrollView>
         </LinearGradient>
       </ImageBackground>
+
+      <PlayerNameModal
+        visible={modal === "player-name"}
+        initialValue={playerName}
+        onSave={setPlayerName}
+        onClose={() => setModal(null)}
+      />
+
+      <HorizontalPickModal
+        visible={modal === "position"}
+        title="Position"
+        options={positionOptions}
+        selectedIndex={positionIndex}
+        onSelect={setPositionIndex}
+        onClose={() => setModal(null)}
+      />
+
+      <HorizontalPickModal
+        visible={modal === "dominant-foot"}
+        title="Dominant foot"
+        options={footOptions}
+        selectedIndex={footIndex}
+        onSelect={setFootIndex}
+        onClose={() => setModal(null)}
+      />
+
+      <HorizontalPickModal
+        visible={modal === "age"}
+        title="Age"
+        options={ageOptions}
+        selectedIndex={ageIndex}
+        onSelect={setAgeIndex}
+        onClose={() => setModal(null)}
+      />
     </View>
   );
 }
