@@ -33,8 +33,6 @@ import { nationFlagEmoji } from "@/constants/nationFlagEmoji";
 import { fontStack, layout } from "@/constants/theme";
 
 const LEAGUE_BADGE = require("@/assets/league.png");
-/** SLB club mark — center of the FIFA card */
-const SLB_LOGO = require("@/assets/slb.logo.png");
 
 const SCREEN_BG = "#0B0E12";
 const CARD_GOLD_TOP = "rgba(201, 162, 39, 0.35)";
@@ -219,13 +217,6 @@ function PlayerFifaCard({ p }: { p: PlayerWithProfile }) {
             <Image
               source={LEAGUE_BADGE}
               style={styles.metaLeagueImg}
-              resizeMode="contain"
-            />
-          </View>
-          <View style={styles.metaTripCenter}>
-            <Image
-              source={SLB_LOGO}
-              style={styles.metaTripClubImg}
               resizeMode="contain"
             />
           </View>
@@ -605,35 +596,24 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     fontFamily: fontStack,
   },
-  /** Three equal columns: league.png | slb.logo.png (center) | nationality flag */
+  /** Two columns: league.png | nationality flag */
   cardMetaRow: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     marginTop: 12,
     width: "100%",
-    paddingHorizontal: 2,
+    paddingHorizontal: 8,
   },
   metaTripLeft: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 36,
-  },
-  metaTripCenter: {
-    flex: 1,
     alignItems: "center",
     justifyContent: "center",
     minHeight: 36,
   },
   metaTripRight: {
-    flex: 1,
     alignItems: "center",
     justifyContent: "center",
     minHeight: 36,
-  },
-  metaTripClubImg: {
-    width: 42,
-    height: 34,
   },
   metaFlagWrap: {
     width: 32,
