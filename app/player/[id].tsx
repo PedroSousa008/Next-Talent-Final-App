@@ -86,6 +86,7 @@ const SEASON_ROWS: { key: keyof SeasonDetails; label: string }[] = [
   { key: "goalsPerGame", label: "Goals per Game" },
   { key: "assists", label: "Assists" },
   { key: "assistsPerGame", label: "Assists per Game" },
+  { key: "minutes", label: "Minutes" },
   { key: "yellows", label: "Yellows" },
   { key: "reds", label: "Reds" },
   { key: "freeKickGoals", label: "Free Kick Goals" },
@@ -125,7 +126,7 @@ function strengthCellColors(level: AttributeLevel): {
 
 function formatSeasonValue(v: number | null): string {
   if (v === null) return "—";
-  if (Number.isInteger(v)) return String(v);
+  if (Number.isInteger(v)) return v.toLocaleString("en-US");
   return String(v);
 }
 
@@ -212,6 +213,13 @@ function PlayerFifaCard({ p }: { p: PlayerWithProfile }) {
         </View>
         <View style={styles.cardMetaRow}>
           <View style={styles.metaTripLeft}>
+            <Image
+              source={LEAGUE_BADGE}
+              style={styles.metaLeagueImg}
+              resizeMode="contain"
+            />
+          </View>
+          <View style={styles.metaTripCenter}>
             {clubLogo != null ? (
               <Image
                 source={clubLogo}
@@ -223,13 +231,6 @@ function PlayerFifaCard({ p }: { p: PlayerWithProfile }) {
                 {p.club}
               </Text>
             )}
-          </View>
-          <View style={styles.metaTripCenter}>
-            <Image
-              source={LEAGUE_BADGE}
-              style={styles.metaLeagueImg}
-              resizeMode="contain"
-            />
           </View>
           <View style={styles.metaTripRight}>
             <View style={styles.metaFlagWrap}>
@@ -614,7 +615,7 @@ const styles = StyleSheet.create({
     fontFamily: fontStack,
     color: "rgba(255,255,255,0.88)",
   },
-  /** Three equal columns: club (Benfica.png) | league (card center) | nationality flag */
+  /** Three equal columns: league | club crest (Benfica.png when matched) | nationality flag */
   cardMetaRow: {
     flexDirection: "row",
     alignItems: "center",

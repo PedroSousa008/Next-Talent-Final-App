@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   Alert,
   Image,
@@ -17,29 +17,66 @@ import { Card } from "@/components/ui/Card";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useAppTheme } from "@/contexts/ThemeContext";
+import { CURRENT_USER_PLAYER_ID } from "@/constants/playerSearch";
 import { fontStack, layout } from "@/constants/theme";
 import { useBreakpoint } from "@/hooks/useBreakpoint";
+import {
+  attributeLevelBarColor,
+  attributeLevelToBarPercent,
+  disciplineLevelFromSeason,
+  getPlayerWithProfile,
+  type AttributeLevel,
+} from "@/data/playerProfileExtras";
 
 const LEVEL_STARS = 4;
-
-const STATS = [
-  { label: "Goals", value: "12", delta: "+3 vs last season" },
-  { label: "Assists", value: "7", delta: "Top 8% for role" },
-  { label: "Minutes", value: "1,842", delta: "98% availability" },
-];
-
-const BARS = [
-  { label: "Finishing", v: 0.78 },
-  { label: "Vision", v: 0.86 },
-  { label: "Work rate", v: 0.91 },
-  { label: "Discipline", v: 0.95 },
-];
 
 export default function ProfileScreen() {
   const { colors, resolvedScheme } = useAppTheme();
   const { profile, updateProfile, replaceProfile } = useProfile();
   const { isDesktop } = useBreakpoint();
   const [editOpen, setEditOpen] = useState(false);
+
+  const seasonSelf = useMemo(
+    () => getPlayerWithProfile(CURRENT_USER_PLAYER_ID, profile),
+    [profile]
+  );
+
+  const stats = useMemo(() => {
+    const sd = seasonSelf?.seasonDetails;
+    if (!sd) return [];
+    const fmt = (n: number | null) =>
+      n === null ? "—" : n.toLocaleString("en-US");
+    return [
+      {
+        label: "Goals",
+        value: fmt(sd.goals),
+        delta: "Same total as Player Details · season",
+      },
+      {
+        label: "Assists",
+        value: fmt(sd.assists),
+        delta: "Same total as Player Details · season",
+      },
+      {
+        label: "Minutes",
+        value: fmt(sd.minutes),
+        delta: "Same total as Player Details · season",
+      },
+    ];
+  }, [seasonSelf]);
+
+  type PerfRow = { label: string; level: AttributeLevel };
+  const performanceRows = useMemo((): PerfRow[] => {
+    const p = seasonSelf;
+    if (!p) return [];
+    const ar = p.attributeRatings;
+    return [
+      { label: "Finishing", level: ar.shooting },
+      { label: "Vision", level: ar.vision },
+      { label: "Work rate", level: ar.workRate },
+      { label: "Discipline", level: disciplineLevelFromSeason(p.seasonDetails) },
+    ];
+  }, [seasonSelf]);
 
   const cover = resolvedScheme === "dark"
     ? (["#1E3A8A", "#0B0F14"] as const)
@@ -256,10 +293,10 @@ export default function ProfileScreen() {
         <View style={styles.max}>
           <SectionTitle
             title="Season performance"
-            subtitle="Snapshot — swap for live analytics later"
+            subtitle="Matches your Player Details season table (open your card from Search)"
           />
           <View style={[styles.statGrid, isDesktop && styles.statGridWide]}>
-            {STATS.map((s) => (
+            {stats.map((s) => (
               <Card
                 key={s.label}
                 padding={16}
@@ -282,35 +319,49 @@ export default function ProfileScreen() {
             <Text style={[styles.chartTitle, { color: colors.text }]}>
               Performance profile
             </Text>
+            <Text
+              style={[
+                styles.chartSub,
+                { color: colors.textMuted },
+              ]}
+            >
+              Colors match the staff grid: green strong, yellow medium, red weak
+            </Text>
             <View style={{ marginTop: 14, gap: 12 }}>
-              {BARS.map((b) => (
-                <View key={b.label}>
-                  <View style={styles.barTop}>
-                    <Text style={[styles.barLabel, { color: colors.textSecondary }]}>
-                      {b.label}
-                    </Text>
-                    <Text style={[styles.barPct, { color: colors.textMuted }]}>
-                      {Math.round(b.v * 100)}%
-                    </Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.barTrack,
-                      { backgroundColor: colors.surfaceMuted },
-                    ]}
-                  >
+              {performanceRows.map((b) => {
+                const pct = attributeLevelToBarPercent(b.level);
+                const fill = attributeLevelBarColor(b.level);
+                return (
+                  <View key={b.label}>
+                    <View style={styles.barTop}>
+                      <Text
+                        style={[styles.barLabel, { color: colors.textSecondary }]}
+                      >
+                        {b.label}
+                      </Text>
+                      <Text style={[styles.barPct, { color: colors.textMuted }]}>
+                        {pct}%
+                      </Text>
+                    </View>
                     <View
                       style={[
-                        styles.barFill,
-                        {
-                          width: `${Math.round(b.v * 100)}%`,
-                          backgroundColor: colors.accent,
-                        },
+                        styles.barTrack,
+                        { backgroundColor: colors.surfaceMuted },
                       ]}
-                    />
+                    >
+                      <View
+                        style={[
+                          styles.barFill,
+                          {
+                            width: `${pct}%`,
+                            backgroundColor: fill,
+                          },
+                        ]}
+                      />
+                    </View>
                   </View>
-                </View>
-              ))}
+                );
+              })}
             </View>
           </Card>
 
@@ -555,6 +606,12 @@ const styles = StyleSheet.create({
   },
   statDelta: { marginTop: 6, fontSize: 12, fontFamily: fontStack },
   chartTitle: { fontSize: 15, fontWeight: "900", fontFamily: fontStack },
+  chartSub: {
+    marginTop: 6,
+    fontSize: 12,
+    lineHeight: 16,
+    fontFamily: fontStack,
+  },
   barTop: {
     flexDirection: "row",
     alignItems: "center",

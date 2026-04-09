@@ -33,6 +33,7 @@ export type SeasonDetails = {
   goalsPerGame: number | null;
   assists: number | null;
   assistsPerGame: number | null;
+  minutes: number | null;
   yellows: number | null;
   reds: number | null;
   freeKickGoals: number | null;
@@ -93,6 +94,8 @@ type SeasonLegacy = {
   yellowCurrent: number;
   redOther: number;
   redCurrent: number;
+  /** If omitted, minutes are estimated from games (typical outfield minutes per appearance). */
+  minutesPlayed?: number | null;
   starts?: number | null;
   freeKickGoals?: number | null;
   penaltyGoals?: number | null;
@@ -114,6 +117,12 @@ function seasonDetailsFromStats(s: SeasonLegacy): SeasonDetails {
   const starts =
     s.starts ??
     (games > 0 ? Math.min(games, Math.max(1, Math.round(games * 0.85))) : null);
+  const minutes =
+    s.minutesPlayed != null && s.minutesPlayed >= 0
+      ? Math.round(s.minutesPlayed)
+      : games > 0
+        ? Math.round(games * 78)
+        : null;
 
   return {
     games: games > 0 ? games : null,
@@ -122,6 +131,7 @@ function seasonDetailsFromStats(s: SeasonLegacy): SeasonDetails {
     goalsPerGame,
     assists: games > 0 || assists > 0 ? assists : null,
     assistsPerGame,
+    minutes,
     yellows: games > 0 || yellows > 0 ? yellows : null,
     reds: games > 0 || reds > 0 ? reds : null,
     freeKickGoals: s.freeKickGoals ?? null,
@@ -424,7 +434,7 @@ const EXTRAS: Record<string, Extra> = {
       headerGoals: 1,
     }
   ),
-  [CURRENT_USER_PLAYER_ID]: pack(
+    [CURRENT_USER_PLAYER_ID]: pack(
     8,
     "13/04/2003",
     1.8,
@@ -441,6 +451,7 @@ const EXTRAS: Record<string, Extra> = {
       yellowCurrent: 1,
       redOther: 0,
       redCurrent: 0,
+      minutesPlayed: 14 * 78,
       freeKickGoals: 0,
       penaltyGoals: 1,
       rightFootedGoals: 4,
@@ -471,6 +482,43 @@ function fallbackExtra(p: MockPlayer): Extra {
       redCurrent: 0,
     }),
   };
+}
+
+/** Bar fill width (%) — matches staff tier strength on the player details grid. */
+export function attributeLevelToBarPercent(level: AttributeLevel): number {
+  switch (level) {
+    case "strong":
+      return 88;
+    case "medium":
+      return 58;
+    case "weak":
+      return 32;
+    default:
+      return 45;
+  }
+}
+
+export function attributeLevelBarColor(level: AttributeLevel): string {
+  switch (level) {
+    case "strong":
+      return "#22C55E";
+    case "medium":
+      return "#EAB308";
+    case "weak":
+      return "#EF4444";
+    default:
+      return "rgba(148, 163, 184, 0.55)";
+  }
+}
+
+/** Card counts → same green / yellow / red bands as the attributes table. */
+export function disciplineLevelFromSeason(sd: SeasonDetails): AttributeLevel {
+  const y = sd.yellows ?? 0;
+  const r = sd.reds ?? 0;
+  if (r >= 1) return "weak";
+  if (y >= 3) return "weak";
+  if (y >= 1) return "medium";
+  return "strong";
 }
 
 export function getPlayerWithProfile(
