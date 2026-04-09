@@ -61,7 +61,7 @@ export const MOCK_PLAYERS: MockPlayer[] = [
   },
   {
     id: "6",
-    name: "Pedro Castro",
+    name: "Tiago Mendes",
     position: "RW",
     dominantFoot: "Right Foot",
     age: 18,

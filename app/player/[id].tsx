@@ -204,8 +204,8 @@ function PlayerFifaCard({ p }: { p: PlayerWithProfile }) {
           <Text style={styles.cardSurname} numberOfLines={1}>
             {last}
           </Text>
-          <Text style={[styles.cardRarity, { color: p.rarityAccent }]}>
-            {p.rarityLabel}
+          <Text style={styles.cardNumberLine}>
+            Number: {p.shirtNumber}
           </Text>
         </View>
         <View style={styles.cardMetaRow}>
@@ -245,7 +245,6 @@ function PlayerBioPanel({ p }: { p: PlayerWithProfile }) {
     <View style={styles.panel}>
       <Text style={styles.panelTitle}>Player</Text>
       <InfoRow label="Name" value={p.name} />
-      <InfoRow label="Known As" value={p.knownAs ?? "-"} />
       <InfoRow label="Date of Birth" value={p.dateOfBirth} />
       <ToggleMetricRow
         label="Height"
@@ -435,8 +434,8 @@ export default function PlayerProfileScreen() {
           >
             <View style={styles.colLeft}>
               <Text style={styles.colHeadName}>{playerLastName(player.name)}</Text>
-              <Text style={[styles.colHeadRare, { color: player.rarityAccent }]}>
-                {player.rarityLabel}
+              <Text style={styles.colHeadNumber}>
+                Number: {player.shirtNumber}
               </Text>
               <PlayerFifaCard p={player} />
             </View>
@@ -532,11 +531,12 @@ const styles = StyleSheet.create({
     fontFamily: fontStack,
     marginBottom: 4,
   },
-  colHeadRare: {
+  colHeadNumber: {
     fontSize: 13,
-    fontWeight: "700",
+    fontWeight: "800",
     fontFamily: fontStack,
     marginBottom: 14,
+    color: "rgba(255,255,255,0.85)",
   },
   cardOuter: {
     width: 200,
@@ -591,11 +591,12 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     fontFamily: fontStack,
   },
-  cardRarity: {
-    fontSize: 11,
-    fontWeight: "700",
+  cardNumberLine: {
+    fontSize: 12,
+    fontWeight: "800",
     marginTop: 2,
     fontFamily: fontStack,
+    color: "rgba(255,255,255,0.88)",
   },
   cardMetaRow: {
     flexDirection: "row",

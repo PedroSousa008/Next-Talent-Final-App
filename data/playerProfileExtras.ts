@@ -2,6 +2,7 @@ import type { ProfileData } from "@/contexts/ProfileContext";
 import { CURRENT_USER_PLAYER_ID } from "@/constants/playerSearch";
 import { profileToSearchPlayer } from "@/lib/mergeSearchWithProfile";
 import { MOCK_PLAYERS, type MockPlayer } from "@/data/mockPlayers";
+import { computeAgeFromDob } from "@/lib/birthDate";
 
 /** Staff-entered strength tier (player cannot edit in-app). */
 export type AttributeLevel = "strong" | "medium" | "weak" | null;
@@ -43,9 +44,7 @@ export type SeasonDetails = {
 
 /** Extended profile shown on the player screen (FIFA-style bio + details). */
 export type PlayerWithProfile = MockPlayer & {
-  rarityLabel: string;
-  rarityAccent: string;
-  knownAs: string | null;
+  shirtNumber: number;
   dateOfBirth: string;
   heightMeters: number;
   weightKg: number;
@@ -134,8 +133,7 @@ function seasonDetailsFromStats(s: SeasonLegacy): SeasonDetails {
 }
 
 function pack(
-  rarityLabel: string,
-  rarityAccent: string,
+  shirtNumber: number,
   dateOfBirth: string,
   heightMeters: number,
   weightKg: number,
@@ -143,9 +141,7 @@ function pack(
   season: SeasonLegacy
 ): Extra {
   return {
-    rarityLabel,
-    rarityAccent,
-    knownAs: null,
+    shirtNumber,
     dateOfBirth,
     heightMeters,
     weightKg,
@@ -156,8 +152,7 @@ function pack(
 
 const EXTRAS: Record<string, Extra> = {
   "1": pack(
-    "Gold Rare",
-    "#5BA3E8",
+    10,
     "14/03/2003",
     1.78,
     76,
@@ -181,8 +176,7 @@ const EXTRAS: Record<string, Extra> = {
     }
   ),
   "2": pack(
-    "Rare",
-    "#9CA3AF",
+    8,
     "02/11/2005",
     1.83,
     74,
@@ -206,8 +200,7 @@ const EXTRAS: Record<string, Extra> = {
     }
   ),
   "3": pack(
-    "Gold Rare",
-    "#5BA3E8",
+    1,
     "19/07/2001",
     1.88,
     86,
@@ -226,8 +219,7 @@ const EXTRAS: Record<string, Extra> = {
     }
   ),
   "4": pack(
-    "Gold Rare",
-    "#5BA3E8",
+    9,
     "08/01/2002",
     1.83,
     79,
@@ -251,8 +243,7 @@ const EXTRAS: Record<string, Extra> = {
     }
   ),
   "5": pack(
-    "Rare",
-    "#9CA3AF",
+    14,
     "22/05/2004",
     1.8,
     72,
@@ -274,8 +265,7 @@ const EXTRAS: Record<string, Extra> = {
     }
   ),
   "6": pack(
-    "Gold Rare",
-    "#5BA3E8",
+    7,
     "11/09/2006",
     1.75,
     68,
@@ -299,8 +289,7 @@ const EXTRAS: Record<string, Extra> = {
     }
   ),
   "7": pack(
-    "Rare",
-    "#9CA3AF",
+    5,
     "30/04/1998",
     1.91,
     84,
@@ -322,8 +311,7 @@ const EXTRAS: Record<string, Extra> = {
     }
   ),
   "8": pack(
-    "Gold Rare",
-    "#5BA3E8",
+    6,
     "03/12/2000",
     1.8,
     78,
@@ -347,8 +335,7 @@ const EXTRAS: Record<string, Extra> = {
     }
   ),
   "9": pack(
-    "Gold Rare",
-    "#5BA3E8",
+    11,
     "17/06/2004",
     1.73,
     65,
@@ -370,8 +357,7 @@ const EXTRAS: Record<string, Extra> = {
     }
   ),
   "10": pack(
-    "Rare",
-    "#9CA3AF",
+    19,
     "01/01/2007",
     1.78,
     71,
@@ -393,8 +379,7 @@ const EXTRAS: Record<string, Extra> = {
     }
   ),
   "11": pack(
-    "Gold Rare",
-    "#5BA3E8",
+    20,
     "25/09/1999",
     1.85,
     82,
@@ -418,8 +403,7 @@ const EXTRAS: Record<string, Extra> = {
     }
   ),
   "12": pack(
-    "Rare",
-    "#9CA3AF",
+    4,
     "14/02/1997",
     1.83,
     77,
@@ -441,9 +425,8 @@ const EXTRAS: Record<string, Extra> = {
     }
   ),
   [CURRENT_USER_PLAYER_ID]: pack(
-    "Gold Rare",
-    "#5BA3E8",
-    "15/06/2002",
+    8,
+    "13/04/2003",
     1.8,
     73,
     43,
@@ -470,9 +453,7 @@ const EXTRAS: Record<string, Extra> = {
 function fallbackExtra(p: MockPlayer): Extra {
   const n = parseInt(p.id, 10) || 1;
   return {
-    rarityLabel: "Rare",
-    rarityAccent: "#9CA3AF",
-    knownAs: null,
+    shirtNumber: ((n * 3) % 28) + 1,
     dateOfBirth: "01/01/2000",
     heightMeters: 1.78 + (n % 10) * 0.02,
     weightKg: 70 + (n % 15),
@@ -500,18 +481,26 @@ export function getPlayerWithProfile(
     if (!profile) return undefined;
     const base = profileToSearchPlayer(profile);
     const extra = EXTRAS[CURRENT_USER_PLAYER_ID] ?? fallbackExtra(base);
-    return {
+    const merged: PlayerWithProfile = {
       ...base,
       ...extra,
       heightMeters: profile.heightMeters,
       weightKg: profile.weightKg,
       nation: profile.nationality,
+      dateOfBirth: profile.dateOfBirth,
+      shirtNumber: profile.shirtNumber,
+      age: computeAgeFromDob(profile.dateOfBirth),
     };
+    return merged;
   }
   const base = MOCK_PLAYERS.find((x) => x.id === id);
   if (!base) return undefined;
   const extra = EXTRAS[id] ?? fallbackExtra(base);
-  return { ...base, ...extra };
+  const merged = { ...base, ...extra };
+  return {
+    ...merged,
+    age: computeAgeFromDob(merged.dateOfBirth),
+  };
 }
 
 export function playerLastName(fullName: string): string {

@@ -13,7 +13,6 @@ import {
 import { HorizontalPickModal } from "@/components/search/HorizontalPickModal";
 import type { ProfileData } from "@/contexts/ProfileContext";
 import {
-  AGE_OPTIONS,
   DOMINANT_FOOT_OPTIONS,
   POSITION_OPTIONS,
 } from "@/constants/searchFilters";
@@ -38,22 +37,24 @@ export function EditProfileModal({
   const [position, setPosition] = useState(initial.position);
   const [club, setClub] = useState(initial.club);
   const [nationality, setNationality] = useState(initial.nationality);
+  const [dateOfBirth, setDateOfBirth] = useState(initial.dateOfBirth);
+  const [shirtNumberStr, setShirtNumberStr] = useState(
+    String(initial.shirtNumber)
+  );
   const [searchPositionIndex, setSearchPositionIndex] = useState(0);
   const [searchFootIndex, setSearchFootIndex] = useState(0);
-  const [searchAgeIndex, setSearchAgeIndex] = useState(0);
   const [heightMetersStr, setHeightMetersStr] = useState(
     String(initial.heightMeters)
   );
   const [weightKgStr, setWeightKgStr] = useState(String(initial.weightKg));
   const [pickKind, setPickKind] = useState<
-    "search-position" | "search-foot" | "search-age" | null
+    "search-position" | "search-foot" | null
   >(null);
 
   const footOptions = useMemo(
     () => ["Any", ...DOMINANT_FOOT_OPTIONS.filter((x) => x !== "Any")],
     []
   );
-  const ageOptions = useMemo(() => [...AGE_OPTIONS], []);
   const positionOptions = useMemo(() => [...POSITION_OPTIONS], []);
 
   useEffect(() => {
@@ -62,6 +63,8 @@ export function EditProfileModal({
       setPosition(initial.position);
       setClub(initial.club);
       setNationality(initial.nationality);
+      setDateOfBirth(initial.dateOfBirth);
+      setShirtNumberStr(String(initial.shirtNumber));
       const pi = positionOptions.indexOf(
         initial.searchPosition as (typeof POSITION_OPTIONS)[number]
       );
@@ -69,36 +72,36 @@ export function EditProfileModal({
       const footLabel = initial.searchFoot?.length ? initial.searchFoot : "Any";
       const fi = footOptions.indexOf(footLabel);
       setSearchFootIndex(fi >= 0 ? fi : 0);
-      const ageLabel =
-        initial.searchAge != null ? String(initial.searchAge) : "Any";
-      const ai = ageOptions.indexOf(
-        ageLabel as (typeof AGE_OPTIONS)[number]
-      );
-      setSearchAgeIndex(ai >= 0 ? ai : 0);
       setHeightMetersStr(String(initial.heightMeters));
       setWeightKgStr(String(initial.weightKg));
     }
-  }, [visible, initial, positionOptions, footOptions, ageOptions]);
+  }, [visible, initial, positionOptions, footOptions]);
 
   const handleSave = () => {
     const footPick = footOptions[searchFootIndex] ?? "Any";
-    const agePick = ageOptions[searchAgeIndex] ?? "Any";
     const hm = parseFloat(heightMetersStr.replace(",", "."));
     const wk = parseFloat(weightKgStr.replace(",", "."));
+    const sn = parseInt(shirtNumberStr.replace(/\D/g, ""), 10);
+    const dob = dateOfBirth.trim() || initial.dateOfBirth;
+
     onSave({
-      ...initial,
       displayName: displayName.trim() || initial.displayName,
+      handle: initial.handle,
       position: position.trim() || initial.position,
       club: club.trim() || initial.club,
       nationality: nationality.trim() || initial.nationality,
+      avatarUri: initial.avatarUri,
       searchPosition: positionOptions[searchPositionIndex] ?? "Any",
       searchFoot: footPick === "Any" ? "" : footPick,
-      searchAge:
-        agePick === "Any" ? null : parseInt(agePick, 10),
       heightMeters:
         Number.isFinite(hm) && hm > 0.5 && hm < 3 ? hm : initial.heightMeters,
       weightKg:
         Number.isFinite(wk) && wk > 20 && wk < 200 ? wk : initial.weightKg,
+      dateOfBirth: dob,
+      shirtNumber:
+        Number.isFinite(sn) && sn >= 0 && sn <= 99
+          ? sn
+          : initial.shirtNumber,
     });
     onClose();
   };
@@ -184,6 +187,18 @@ export function EditProfileModal({
           showsVerticalScrollIndicator={false}
         >
           {field("Name", displayName, setDisplayName, "Your name")}
+          {field(
+            "Date of birth",
+            dateOfBirth,
+            setDateOfBirth,
+            "DD/MM/YYYY"
+          )}
+          {field(
+            "Shirt number",
+            shirtNumberStr,
+            setShirtNumberStr,
+            "e.g. 8"
+          )}
           {field("Position", position, setPosition, "e.g. Winger")}
           {field("Club", club, setClub, "Your club")}
           {field("Nationality", nationality, setNationality, "e.g. Portugal")}
@@ -204,8 +219,8 @@ export function EditProfileModal({
             Search filters (how others find you)
           </Text>
           <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
-            Leave as “Any” or empty to match any Search filter. Your profile photo
-            appears in results when your name matches.
+            Age in Search uses your date of birth and updates every year on your
+            birthday. Leave position or foot as “Any” to match any filter.
           </Text>
           {pickRow(
             "Search · Position",
@@ -216,11 +231,6 @@ export function EditProfileModal({
             "Search · Dominant foot",
             footOptions[searchFootIndex] ?? "Any",
             () => setPickKind("search-foot")
-          )}
-          {pickRow(
-            "Search · Age",
-            ageOptions[searchAgeIndex] ?? "Any",
-            () => setPickKind("search-age")
           )}
         </ScrollView>
 
@@ -238,14 +248,6 @@ export function EditProfileModal({
           options={footOptions}
           selectedIndex={searchFootIndex}
           onSelect={setSearchFootIndex}
-          onClose={() => setPickKind(null)}
-        />
-        <HorizontalPickModal
-          visible={pickKind === "search-age"}
-          title="Search · Age"
-          options={ageOptions}
-          selectedIndex={searchAgeIndex}
-          onSelect={setSearchAgeIndex}
           onClose={() => setPickKind(null)}
         />
       </KeyboardAvoidingView>

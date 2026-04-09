@@ -1,6 +1,7 @@
 import type { ProfileData } from "@/contexts/ProfileContext";
 import { CURRENT_USER_PLAYER_ID } from "@/constants/playerSearch";
 import type { MockPlayer } from "@/data/mockPlayers";
+import { computeAgeFromDob } from "@/lib/birthDate";
 import type { PlayerSearchCriteria } from "@/lib/filterPlayers";
 
 export type SearchListPlayer = MockPlayer & { avatarUri?: string | null };
@@ -32,10 +33,8 @@ export function profileMatchesSearchCriteria(
     }
   }
   if (c.age !== "Any") {
-    if (
-      profile.searchAge != null &&
-      String(profile.searchAge) !== c.age
-    ) {
+    const liveAge = computeAgeFromDob(profile.dateOfBirth);
+    if (String(liveAge) !== c.age) {
       return false;
     }
   }
@@ -49,7 +48,7 @@ export function profileToSearchPlayer(profile: ProfileData): SearchListPlayer {
     profile.searchFoot && profile.searchFoot.length > 0
       ? profile.searchFoot
       : "Right Foot";
-  const age = profile.searchAge ?? 18;
+  const age = computeAgeFromDob(profile.dateOfBirth);
   return {
     id: CURRENT_USER_PLAYER_ID,
     name: profile.displayName,

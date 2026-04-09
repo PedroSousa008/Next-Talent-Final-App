@@ -8,7 +8,9 @@ import React, {
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const STORAGE_KEY = "@next_talent_profile_v1";
+/** v2: safe merge so missing JSON keys do not wipe fields like avatarUri */
+const STORAGE_KEY = "@next_talent_profile_v2";
+const STORAGE_KEY_LEGACY = "@next_talent_profile_v1";
 
 export type ProfileData = {
   displayName: string;
@@ -22,27 +24,59 @@ export type ProfileData = {
   searchPosition: string;
   /** Dominant foot for Search; empty = match any foot filter */
   searchFoot: string;
-  /** Age for Search; null = match any age filter */
-  searchAge: number | null;
   /** Player profile card / bio (metres) */
   heightMeters: number;
   /** Player profile card / bio (kilograms) */
   weightKg: number;
+  /** DD/MM/YYYY — age is derived from this every day */
+  dateOfBirth: string;
+  /** Kit number shown on player card */
+  shirtNumber: number;
 };
 
 const defaultProfile: ProfileData = {
-  displayName: "Pedro Castro",
-  handle: "pedrocastro",
+  displayName: "Pedro Sousa",
+  handle: "pedrosousa",
   position: "Winger",
   club: "North City FC",
   nationality: "Portugal",
   avatarUri: null,
   searchPosition: "Any",
   searchFoot: "",
-  searchAge: null,
   heightMeters: 1.8,
   weightKg: 73,
+  dateOfBirth: "13/04/2003",
+  shirtNumber: 8,
 };
+
+function mergeStoredProfile(raw: unknown): ProfileData {
+  const merged = { ...defaultProfile };
+  if (!raw || typeof raw !== "object") return merged;
+  const p = raw as Record<string, unknown>;
+  (Object.keys(defaultProfile) as (keyof ProfileData)[]).forEach((key) => {
+    if (!Object.prototype.hasOwnProperty.call(p, key)) return;
+    const v = p[key];
+    if (v === undefined) return;
+    switch (key) {
+      case "shirtNumber":
+      case "heightMeters":
+      case "weightKg": {
+        const n = typeof v === "number" ? v : Number(v);
+        if (Number.isFinite(n)) (merged as Record<string, unknown>)[key] = n;
+        break;
+      }
+      case "avatarUri":
+        merged.avatarUri =
+          v === null || typeof v === "string" ? v : merged.avatarUri;
+        break;
+      default:
+        if (typeof v === "string") {
+          (merged as Record<string, unknown>)[key] = v;
+        }
+    }
+  });
+  return merged;
+}
 
 type ProfileContextValue = {
   profile: ProfileData;
@@ -61,11 +95,16 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
     (async () => {
       try {
-        const raw = await AsyncStorage.getItem(STORAGE_KEY);
+        let rawStr = await AsyncStorage.getItem(STORAGE_KEY);
+        if (!rawStr) {
+          rawStr = await AsyncStorage.getItem(STORAGE_KEY_LEGACY);
+        }
         if (cancelled) return;
-        if (raw) {
-          const parsed = JSON.parse(raw) as Partial<ProfileData>;
-          setProfile({ ...defaultProfile, ...parsed });
+        if (rawStr) {
+          const parsed = JSON.parse(rawStr) as unknown;
+          const merged = mergeStoredProfile(parsed);
+          setProfile(merged);
+          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
         }
       } catch {
         /* keep defaults */
