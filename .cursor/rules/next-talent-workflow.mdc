@@ -13,7 +13,9 @@ alwaysApply: true
 ## Vercel / deploy after changes
 
 - After completing a meaningful batch of changes to the site, **trigger a production deploy** without asking the user to deploy manually.
-- **Preferred:** If the repo is linked to GitHub and Vercel has **automatic deployments on push**, run `git add`, `commit`, and `git push` (request `git_write` + `network`) so Vercel builds automatically.
+- **Git push is mandatory after commit:** Whenever you `git commit`, **always** run `git push` to `origin` in the same turn/session—do not leave the branch ahead of remote unless push truly failed. Do not ask the user to push.
+- **Preferred:** If the repo is linked to GitHub and Vercel has **automatic deployments on push**, run `git add`, `commit`, then **`git push`** (request `git_write` + `network`) so Vercel builds automatically.
+- If `git push` fails with auth or “Device not configured”, **retry once** with full permissions (`all`) so the environment can use the system keychain/credentials; only then report failure in one sentence.
 - **Alternative:** If the project uses Vercel CLI with a token available in the environment, run `npx vercel --prod` (or the project’s deploy script) after changes.
 - If neither git remote nor CLI deploy is possible in the environment, say so in one sentence—do not dump a tutorial.
 
