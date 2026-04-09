@@ -2,6 +2,7 @@ import React from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { useAppTheme } from "@/contexts/ThemeContext";
 import { fontStack, layout } from "@/constants/theme";
 
@@ -32,11 +33,7 @@ export function TopChrome() {
     >
       <View style={styles.inner}>
         <View style={styles.brand}>
-          <View
-            style={[styles.mark, { backgroundColor: colors.accentMuted }]}
-          >
-            <Ionicons name="football" size={18} color={colors.accent} />
-          </View>
+          <BrandLogo size={36} />
           <Text style={[styles.wordmark, { color: colors.text }]}>
             Next Talent
           </Text>
@@ -80,13 +77,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   brand: { flexDirection: "row", alignItems: "center", gap: 10 },
-  mark: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   wordmark: {
     fontSize: 17,
     fontWeight: "700",
