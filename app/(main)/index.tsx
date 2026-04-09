@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  ImageBackground,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Card } from "@/components/ui/Card";
@@ -84,16 +78,15 @@ export default function FeedScreen() {
           title="Breaking"
           subtitle="High-signal stories right now"
         />
-        <Card style={styles.breakingCard}>
-          <ImageBackground
-            source={{
-              uri: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1200&q=80",
-            }}
+        <Card style={styles.breakingCard} padding={0}>
+          <LinearGradient
+            colors={["#166534", "#0f172a"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={styles.breakingImg}
-            imageStyle={{ borderRadius: layout.radiusMd - 1 }}
           >
             <LinearGradient
-              colors={["transparent", "rgba(0,0,0,0.85)"]}
+              colors={["transparent", "rgba(0,0,0,0.88)"]}
               style={styles.breakingGrad}
             >
               <View style={styles.breakingBadge}>
@@ -104,7 +97,7 @@ export default function FeedScreen() {
               <Text style={styles.breakingMeta}>{BREAKING.meta}</Text>
               <Text style={styles.breakingExcerpt}>{BREAKING.excerpt}</Text>
             </LinearGradient>
-          </ImageBackground>
+          </LinearGradient>
         </Card>
 
         <SectionTitle

@@ -1,18 +1,17 @@
 import React, { useEffect } from "react";
-import { Platform } from "react-native";
-import { enableScreens } from "react-native-screens";
-import { Stack } from "expo-router";
+import { Platform, View } from "react-native";
+import { Slot } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SystemUI from "expo-system-ui";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeProvider, useAppTheme } from "@/contexts/ThemeContext";
-
-if (Platform.OS === "web") {
-  enableScreens(false);
-}
 
 function ThemedStatusBar() {
   const { resolvedScheme } = useAppTheme();
+  if (Platform.OS === "web") {
+    return null;
+  }
   return (
     <StatusBar style={resolvedScheme === "dark" ? "light" : "dark"} />
   );
@@ -26,32 +25,36 @@ function RootNavigation() {
       const bg = colors.bg;
       document.body.style.backgroundColor = bg;
       document.documentElement.style.backgroundColor = bg;
+      const root = document.getElementById("root");
+      if (root) {
+        root.style.backgroundColor = bg;
+      }
+    } else if (Platform.OS !== "web") {
+      void SystemUI.setBackgroundColorAsync(colors.bg);
     }
-    void SystemUI.setBackgroundColorAsync(colors.bg);
   }, [colors.bg]);
 
   return (
-    <>
+    <View
+      style={[
+        { flex: 1, backgroundColor: colors.bg },
+        Platform.OS === "web" && ({ minHeight: "100vh" } as const),
+      ]}
+    >
       <ThemedStatusBar />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: colors.bg },
-          ...(Platform.OS === "web"
-            ? {}
-            : { animation: "fade" as const }),
-        }}
-      />
-    </>
+      <Slot />
+    </View>
   );
 }
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
-      <ThemeProvider>
-        <RootNavigation />
-      </ThemeProvider>
-    </SafeAreaProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <RootNavigation />
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
