@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { EditProfileModal } from "@/components/profile/EditProfileModal";
@@ -27,14 +28,22 @@ import {
   getPlayerWithProfile,
   type AttributeLevel,
 } from "@/data/playerProfileExtras";
+import { clubToSlug } from "@/lib/clubSlug";
 
 const LEVEL_STARS = 4;
 
 export default function ProfileScreen() {
   const { colors, resolvedScheme } = useAppTheme();
   const { profile, updateProfile, replaceProfile } = useProfile();
+  const router = useRouter();
   const { isDesktop } = useBreakpoint();
   const [editOpen, setEditOpen] = useState(false);
+
+  const openClubHub = useCallback(() => {
+    const slug = clubToSlug(profile.club);
+    if (!slug) return;
+    router.push(`/club/${slug}`);
+  }, [profile.club, router]);
 
   const seasonSelf = useMemo(
     () => getPlayerWithProfile(CURRENT_USER_PLAYER_ID, profile),
@@ -366,7 +375,7 @@ export default function ProfileScreen() {
           </Card>
 
           <SectionTitle title="Club" subtitle="Your organization on Next Talent" />
-          <Card onPress={() => {}} padding={16} style={styles.clubCard}>
+          <Card onPress={openClubHub} padding={16} style={styles.clubCard}>
             <View style={styles.clubRow}>
               <View
                 style={[
