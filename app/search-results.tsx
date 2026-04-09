@@ -100,14 +100,18 @@ export default function SearchResultsScreen() {
           </View>
         }
         renderItem={({ item }) => (
-          <View
-            style={[
+          <Pressable
+            onPress={() => router.push(`/player/${item.id}`)}
+            style={({ pressed }) => [
               styles.card,
               {
                 backgroundColor: colors.surface,
                 borderColor: colors.border,
+                opacity: pressed ? 0.88 : 1,
               },
             ]}
+            accessibilityRole="button"
+            accessibilityLabel={`Open profile for ${item.name}`}
           >
             <View style={styles.cardRow}>
               <View
@@ -127,8 +131,9 @@ export default function SearchResultsScreen() {
                   {item.club} · {item.nation}
                 </Text>
               </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
             </View>
-          </View>
+          </Pressable>
         )}
       />
     </View>
