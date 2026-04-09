@@ -17,7 +17,10 @@ import {
   getPlayerWithProfile,
   playerLastName,
   preferredFootShort,
+  type AttributeLevel,
+  type PlayerAttributeRatings,
   type PlayerWithProfile,
+  type SeasonDetails,
 } from "@/data/playerProfileExtras";
 import { useBreakpoint } from "@/hooks/useBreakpoint";
 import {
@@ -26,13 +29,104 @@ import {
   formatWeightLb,
   metersToFeetInches,
 } from "@/lib/playerMeasurements";
+import { nationFlagEmoji } from "@/constants/nationFlagEmoji";
 import { fontStack, layout } from "@/constants/theme";
+
+const LEAGUE_BADGE = require("@/assets/league.png");
 
 const SCREEN_BG = "#0B0E12";
 const CARD_GOLD_TOP = "rgba(201, 162, 39, 0.35)";
 const CARD_GOLD_BOTTOM = "rgba(12, 16, 24, 0.95)";
 const TEXT_MUTED = "rgba(255,255,255,0.45)";
 const DIVIDER = "rgba(255,255,255,0.08)";
+
+const STRENGTH_COLUMNS: {
+  title?: string;
+  rows: { label: string; key: keyof PlayerAttributeRatings }[];
+}[] = [
+  {
+    rows: [
+      { label: "Shooting", key: "shooting" },
+      { label: "Long Shooting", key: "longShooting" },
+      { label: "Penalty Taker", key: "penaltyTaker" },
+      { label: "Free Kick Taker", key: "freeKickTaker" },
+    ],
+  },
+  {
+    rows: [
+      { label: "Passing", key: "passing" },
+      { label: "Vision", key: "vision" },
+      { label: "Crossing", key: "crossing" },
+      { label: "Corner Taker", key: "cornerTaker" },
+    ],
+  },
+  {
+    rows: [
+      { label: "Dribbling", key: "dribbling" },
+      { label: "Ball Control", key: "ballControl" },
+      { label: "First Touch", key: "firstTouch" },
+      { label: "Composure", key: "composure" },
+    ],
+  },
+  {
+    rows: [
+      { label: "Tackling", key: "tackling" },
+      { label: "Positioning", key: "positioning" },
+      { label: "Work Rate", key: "workRate" },
+      { label: "Leadership", key: "leadership" },
+    ],
+  },
+];
+
+const SEASON_ROWS: { key: keyof SeasonDetails; label: string }[] = [
+  { key: "games", label: "Games" },
+  { key: "starts", label: "Starts" },
+  { key: "goals", label: "Goals" },
+  { key: "goalsPerGame", label: "Goals per Game" },
+  { key: "assists", label: "Assists" },
+  { key: "assistsPerGame", label: "Assists per Game" },
+  { key: "yellows", label: "Yellows" },
+  { key: "reds", label: "Reds" },
+  { key: "freeKickGoals", label: "Free Kick Goals" },
+  { key: "penaltyGoals", label: "Penalty Goals" },
+  { key: "rightFootedGoals", label: "Right Footed Goals" },
+  { key: "leftFootedGoals", label: "Left Footed Goals" },
+  { key: "headerGoals", label: "Header Goals" },
+];
+
+function strengthCellColors(level: AttributeLevel): {
+  backgroundColor: string;
+  borderColor: string;
+} {
+  switch (level) {
+    case "strong":
+      return {
+        backgroundColor: "rgba(34, 197, 94, 0.2)",
+        borderColor: "rgba(34, 197, 94, 0.45)",
+      };
+    case "medium":
+      return {
+        backgroundColor: "rgba(234, 179, 8, 0.22)",
+        borderColor: "rgba(234, 179, 8, 0.45)",
+      };
+    case "weak":
+      return {
+        backgroundColor: "rgba(239, 68, 68, 0.2)",
+        borderColor: "rgba(239, 68, 68, 0.42)",
+      };
+    default:
+      return {
+        backgroundColor: "rgba(255,255,255,0.04)",
+        borderColor: "rgba(255,255,255,0.08)",
+      };
+  }
+}
+
+function formatSeasonValue(v: number | null): string {
+  if (v === null) return "—";
+  if (Number.isInteger(v)) return String(v);
+  return String(v);
+}
 
 type TabId = "bio" | "details";
 
@@ -86,6 +180,7 @@ function ToggleMetricRow({
 
 function PlayerFifaCard({ p }: { p: PlayerWithProfile }) {
   const last = playerLastName(p.name);
+  const flag = nationFlagEmoji(p.nation);
   return (
     <View style={styles.cardOuter}>
       <LinearGradient
@@ -114,22 +209,21 @@ function PlayerFifaCard({ p }: { p: PlayerWithProfile }) {
           </Text>
         </View>
         <View style={styles.cardMetaRow}>
-          <View style={styles.metaDot}>
-            <Text style={styles.metaDotText}>{p.nation.slice(0, 2).toUpperCase()}</Text>
+          <View style={styles.metaFlagWrap}>
+            <Text style={styles.metaFlagEmoji} allowFontScaling={false}>
+              {flag}
+            </Text>
           </View>
-          <View style={styles.metaDot}>
-            <Ionicons name="football-outline" size={14} color="rgba(255,255,255,0.7)" />
+          <View style={styles.metaLeagueWrap}>
+            <Image source={LEAGUE_BADGE} style={styles.metaLeagueImg} resizeMode="contain" />
           </View>
-          <View style={[styles.metaDot, { flex: 1, minWidth: 0 }]}>
+          <View style={[styles.metaDot, styles.metaClubWrap]}>
             <Text style={styles.metaClub} numberOfLines={1}>
               {p.club}
             </Text>
           </View>
         </View>
       </LinearGradient>
-      <Text style={styles.playStylesFoot}>
-        PlayStyles: {p.playStylesCount}
-      </Text>
     </View>
   );
 }
@@ -176,34 +270,63 @@ function PlayerBioPanel({ p }: { p: PlayerWithProfile }) {
   );
 }
 
+function StrengthCell({
+  label,
+  level,
+}: {
+  label: string;
+  level: AttributeLevel;
+}) {
+  const c = strengthCellColors(level);
+  return (
+    <View style={[styles.strengthCell, c]}>
+      <Text style={styles.strengthCellLabel}>{label}</Text>
+    </View>
+  );
+}
+
 function PlayerDetailsPanel({ p }: { p: PlayerWithProfile }) {
-  const fmt = (a: number, b: number) => `${a + b} ( ${a} / ${b} )`;
+  const sd = p.seasonDetails;
   return (
     <View style={styles.panel}>
+      <Text style={styles.staffOnlyNote}>
+        Staff only — coaches, referees, and app-authorized roles can add or edit
+        this data. Players cannot change it here.
+      </Text>
+
       <Text style={styles.panelTitle}>Details</Text>
-      <InfoRow label="Bought For" value={p.boughtFor} />
-      <InfoRow label="Number of Owners" value={String(p.owners)} />
-      <InfoRow label="Trade Status" value={p.tradeStatus} />
-      <InfoRow
-        label="Matches Played (Other Clubs / Current Club)"
-        value={fmt(p.matchesOther, p.matchesCurrent)}
-      />
-      <InfoRow
-        label="Goals scored (Other Clubs / Current Club)"
-        value={fmt(p.goalsOther, p.goalsCurrent)}
-      />
-      <InfoRow
-        label="Assists (Other Clubs / Current Club)"
-        value={fmt(p.assistsOther, p.assistsCurrent)}
-      />
-      <InfoRow
-        label="Yellow Cards (Other Clubs / Current Club)"
-        value={fmt(p.yellowOther, p.yellowCurrent)}
-      />
-      <InfoRow
-        label="Red Cards (Other Clubs / Current Club)"
-        value={fmt(p.redOther, p.redCurrent)}
-      />
+      <ScrollView
+        horizontal
+        nestedScrollEnabled
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.strengthScroll}
+      >
+        <View style={styles.strengthRow}>
+          {STRENGTH_COLUMNS.map((col, ci) => (
+            <View key={ci} style={styles.strengthCol}>
+              {col.rows.map((row) => (
+                <StrengthCell
+                  key={row.key}
+                  label={row.label}
+                  level={p.attributeRatings[row.key]}
+                />
+              ))}
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+
+      <Text style={[styles.panelTitle, styles.seasonTitle]}>Season Details</Text>
+      <View style={styles.seasonList}>
+        {SEASON_ROWS.map(({ key, label }) => (
+          <View key={key} style={styles.seasonRow}>
+            <Text style={styles.seasonLabel}>{label}</Text>
+            <Text style={styles.seasonValue}>
+              {formatSeasonValue(sd[key])}
+            </Text>
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
@@ -480,21 +603,46 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 12,
   },
+  metaFlagWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  metaFlagEmoji: {
+    fontSize: 20,
+    lineHeight: 24,
+  },
+  metaLeagueWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+    padding: 4,
+  },
+  metaLeagueImg: {
+    width: 24,
+    height: 24,
+  },
   metaDot: {
-    width: 28,
-    height: 28,
     borderRadius: 14,
     backgroundColor: "rgba(255,255,255,0.12)",
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
-    paddingHorizontal: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 6,
+    minHeight: 28,
   },
-  metaDotText: {
-    color: "rgba(255,255,255,0.85)",
-    fontSize: 9,
-    fontWeight: "800",
-    fontFamily: fontStack,
+  metaClubWrap: {
+    flex: 1,
+    minWidth: 0,
   },
   metaClub: {
     color: "rgba(255,255,255,0.75)",
@@ -502,13 +650,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontFamily: fontStack,
     textAlign: "center",
-  },
-  playStylesFoot: {
-    color: TEXT_MUTED,
-    fontSize: 12,
-    fontWeight: "600",
-    marginTop: 10,
-    fontFamily: fontStack,
   },
   panel: {
     flex: 1,
@@ -554,7 +695,73 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   detailsOnly: {
-    maxWidth: 560,
+    maxWidth: 960,
+    alignSelf: "stretch",
+    width: "100%",
+  },
+  staffOnlyNote: {
+    color: TEXT_MUTED,
+    fontSize: 12,
+    lineHeight: 17,
+    marginBottom: 18,
+    fontFamily: fontStack,
+  },
+  strengthScroll: {
+    paddingBottom: 8,
+    gap: 0,
+  },
+  strengthRow: {
+    flexDirection: "row",
+    gap: 10,
+    paddingRight: 8,
+  },
+  strengthCol: {
+    width: 132,
+    gap: 8,
+  },
+  strengthCell: {
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    minHeight: 44,
+    justifyContent: "center",
+  },
+  strengthCellLabel: {
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: "700",
+    fontFamily: fontStack,
+    lineHeight: 14,
+  },
+  seasonTitle: {
+    marginTop: 28,
+  },
+  seasonList: {
+    gap: 0,
+    marginTop: 4,
+  },
+  seasonRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: DIVIDER,
+  },
+  seasonLabel: {
+    color: TEXT_MUTED,
+    fontSize: 12,
+    fontWeight: "600",
+    fontFamily: fontStack,
+    flex: 1,
+    paddingRight: 12,
+  },
+  seasonValue: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "800",
+    fontFamily: fontStack,
   },
   missing: {
     flex: 1,
